@@ -125,6 +125,7 @@ interface AppState {
   formasPagamento: FormaPagamento[]
   financialGoals: FinancialGoal[]
   addLancamento: (lancamento: Omit<Lancamento, 'id'>) => void
+  addMultipleLancamentos: (lancamentos: Omit<Lancamento, 'id'>[]) => void
   updateLancamento: (lancamento: Lancamento) => void
   deleteLancamento: (id: string) => void
   addCategoria: (nome: string) => void
@@ -155,7 +156,17 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           lancamentos: [
             ...state.lancamentos,
-            { ...lancamento, id: new Date().toISOString() },
+            { ...lancamento, id: new Date().toISOString() + Math.random() },
+          ],
+        })),
+      addMultipleLancamentos: (newLancamentos) =>
+        set((state) => ({
+          lancamentos: [
+            ...state.lancamentos,
+            ...newLancamentos.map((l, index) => ({
+              ...l,
+              id: new Date().toISOString() + `-${index}-${Math.random()}`,
+            })),
           ],
         })),
       updateLancamento: (lancamento) =>

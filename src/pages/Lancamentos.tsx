@@ -17,10 +17,17 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { useExcelExport } from '@/hooks/useExcelExport'
+import { ImportCsvDialog } from '@/components/ImportCsvDialog'
 
 const LancamentosPage = () => {
-  const { lancamentos, addLancamento, updateLancamento, deleteLancamento } =
-    useAppStore()
+  const {
+    lancamentos,
+    addLancamento,
+    updateLancamento,
+    deleteLancamento,
+    addMultipleLancamentos,
+  } = useAppStore()
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
   const [selectedLancamento, setSelectedLancamento] =
     useState<Lancamento | null>(null)
@@ -28,6 +35,8 @@ const LancamentosPage = () => {
   const [lancamentoToDeleteId, setLancamentoToDeleteId] = useState<
     string | null
   >(null)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+  const { exportToExcel } = useExcelExport()
 
   const handleOpenManageDialog = (lancamento: Lancamento | null = null) => {
     setSelectedLancamento(lancamento)
@@ -78,6 +87,18 @@ const LancamentosPage = () => {
     }
   }
 
+  const handleExport = () => {
+    const filename = `lancamentos_${format(new Date(), 'yyyy-MM-dd')}.csv`
+    exportToExcel(lancamentos, filename)
+  }
+
+  const handleImport = (data: Omit<Lancamento, 'id'>[]) => {
+    addMultipleLancamentos(data)
+    toast.success('Importação bem-sucedida!', {
+      description: `${data.length} novos lançamentos foram adicionados.`,
+    })
+  }
+
   return (
     <div className="page-content">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -86,10 +107,13 @@ const LancamentosPage = () => {
           <Button onClick={() => handleOpenManageDialog()}>
             <PlusCircle className="mr-2 h-4 w-4" /> Novo Lançamento
           </Button>
-          <Button variant="secondary">
+          <Button
+            variant="secondary"
+            onClick={() => setIsImportDialogOpen(true)}
+          >
             <Upload className="mr-2 h-4 w-4" /> Importar CSV
           </Button>
-          <Button variant="secondary">
+          <Button variant="secondary" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" /> Exportar Excel
           </Button>
         </div>
@@ -106,6 +130,12 @@ const LancamentosPage = () => {
         onClose={handleCloseManageDialog}
         onSave={handleSaveLancamento}
         lancamento={selectedLancamento}
+      />
+
+      <ImportCsvDialog
+        isOpen={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        onImport={handleImport}
       />
 
       <AlertDialog
