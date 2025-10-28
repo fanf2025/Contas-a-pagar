@@ -4,6 +4,10 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
+import Lancamentos from './pages/Lancamentos'
+import Baixas from './pages/Baixas'
+import Relatorios from './pages/Relatorios'
+import Configuracoes from './pages/Configuracoes'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 
@@ -11,16 +15,17 @@ import Layout from './components/Layout'
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
 
 const App = () => (
-  <BrowserRouter
-    future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
-  >
+  <BrowserRouter>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
+          <Route path="/lancamentos" element={<Lancamentos />} />
+          <Route path="/baixas" element={<Baixas />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
