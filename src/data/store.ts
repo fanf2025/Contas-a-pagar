@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { Lancamento, Categoria, Fornecedor, FormaPagamento } from '@/types'
-import { format } from 'date-fns'
+import {
+  Lancamento,
+  Categoria,
+  Fornecedor,
+  FormaPagamento,
+  FinancialGoal,
+  GoalContribution,
+} from '@/types'
 
 const initialCategorias: Categoria[] = [
   { id: '1', nome: 'Fornecedores de Medicamentos' },
@@ -62,8 +68,8 @@ const initialLancamentos: Lancamento[] = [
   },
   {
     id: '3',
-    data: '2025-07-15',
-    mes: 'Julho',
+    data: '2025-11-15',
+    mes: 'Novembro',
     ano: 2025,
     tipo: 'DESPESAS',
     categoria: 'Salários e Encargos',
@@ -90,11 +96,34 @@ const initialLancamentos: Lancamento[] = [
   },
 ]
 
+const initialFinancialGoals: FinancialGoal[] = [
+  {
+    id: 'goal1',
+    name: 'Férias de Fim de Ano',
+    targetAmount: 10000,
+    targetDate: '2025-12-20',
+    contributions: [
+      { id: 'c1', goalId: 'goal1', amount: 1500, date: '2025-03-15' },
+      { id: 'c2', goalId: 'goal1', amount: 2000, date: '2025-06-20' },
+    ],
+  },
+  {
+    id: 'goal2',
+    name: 'Novo Equipamento',
+    targetAmount: 25000,
+    targetDate: '2026-01-31',
+    contributions: [
+      { id: 'c3', goalId: 'goal2', amount: 5000, date: '2025-05-01' },
+    ],
+  },
+]
+
 interface AppState {
   lancamentos: Lancamento[]
   categorias: Categoria[]
   fornecedores: Fornecedor[]
   formasPagamento: FormaPagamento[]
+  financialGoals: FinancialGoal[]
   addLancamento: (lancamento: Omit<Lancamento, 'id'>) => void
   updateLancamento: (lancamento: Lancamento) => void
   deleteLancamento: (id: string) => void
@@ -107,6 +136,10 @@ interface AppState {
   addFormaPagamento: (nome: string) => void
   updateFormaPagamento: (forma: FormaPagamento) => void
   deleteFormaPagamento: (id: string) => void
+  addFinancialGoal: (goal: Omit<FinancialGoal, 'id' | 'contributions'>) => void
+  updateFinancialGoal: (goal: Omit<FinancialGoal, 'contributions'>) => void
+  deleteFinancialGoal: (id: string) => void
+  addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -116,6 +149,7 @@ export const useAppStore = create<AppState>()(
       categorias: initialCategorias,
       fornecedores: initialFornecedores,
       formasPagamento: initialFormasPagamento,
+      financialGoals: initialFinancialGoals,
 
       addLancamento: (lancamento) =>
         set((state) => ({
@@ -187,6 +221,38 @@ export const useAppStore = create<AppState>()(
       deleteFormaPagamento: (id) =>
         set((state) => ({
           formasPagamento: state.formasPagamento.filter((f) => f.id !== id),
+        })),
+
+      addFinancialGoal: (goal) =>
+        set((state) => ({
+          financialGoals: [
+            ...state.financialGoals,
+            { ...goal, id: new Date().toISOString(), contributions: [] },
+          ],
+        })),
+      updateFinancialGoal: (goal) =>
+        set((state) => ({
+          financialGoals: state.financialGoals.map((g) =>
+            g.id === goal.id ? { ...g, ...goal } : g,
+          ),
+        })),
+      deleteFinancialGoal: (id) =>
+        set((state) => ({
+          financialGoals: state.financialGoals.filter((g) => g.id !== id),
+        })),
+      addGoalContribution: (contribution) =>
+        set((state) => ({
+          financialGoals: state.financialGoals.map((g) =>
+            g.id === contribution.goalId
+              ? {
+                  ...g,
+                  contributions: [
+                    ...g.contributions,
+                    { ...contribution, id: new Date().toISOString() },
+                  ],
+                }
+              : g,
+          ),
         })),
     }),
     {

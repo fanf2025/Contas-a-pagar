@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
+import { NotificationHandler } from './NotificationHandler'
 
 const getPageTitle = (pathname: string): string => {
   switch (pathname) {
@@ -10,6 +11,8 @@ const getPageTitle = (pathname: string): string => {
       return 'Lançamentos'
     case '/baixas':
       return 'Baixas'
+    case '/metas':
+      return 'Metas Financeiras'
     case '/relatorios':
       return 'Relatórios'
     case '/configuracoes':
@@ -25,6 +28,7 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-background">
+      <NotificationHandler />
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AppHeader title={title} />

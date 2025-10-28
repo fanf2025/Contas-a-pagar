@@ -14,6 +14,7 @@ import LoginPage from './pages/Login'
 import RegisterPage from './pages/Register'
 import ForgotPasswordPage from './pages/ForgotPassword'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import MetasPage from './pages/Metas'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/lancamentos" element={<Lancamentos />} />
             <Route path="/baixas" element={<Baixas />} />
+            <Route path="/metas" element={<MetasPage />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>

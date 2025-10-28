@@ -6,13 +6,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 import { PlusCircle } from 'lucide-react'
 
 const ConfiguracoesPage = () => {
-  // This is a placeholder. The full implementation will be provided in the next steps.
+  const {
+    paymentRemindersEnabled,
+    newTransactionImportsEnabled,
+    togglePaymentReminders,
+    toggleNewTransactionImports,
+  } = useSettingsStore()
+
   return (
     <div className="page-content">
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Categorias</CardTitle>
@@ -24,7 +33,6 @@ const ConfiguracoesPage = () => {
             <Button className="w-full">
               <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Categoria
             </Button>
-            {/* List of categories will be implemented here */}
           </CardContent>
         </Card>
         <Card>
@@ -36,7 +44,6 @@ const ConfiguracoesPage = () => {
             <Button className="w-full">
               <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Fornecedor
             </Button>
-            {/* List of suppliers will be implemented here */}
           </CardContent>
         </Card>
         <Card>
@@ -49,7 +56,40 @@ const ConfiguracoesPage = () => {
               <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Forma de
               Pagamento
             </Button>
-            {/* List of payment methods will be implemented here */}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Notificações</CardTitle>
+            <CardDescription>
+              Personalize os alertas que você recebe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <Label>Lembretes de Pagamento</Label>
+                <p className="text-sm text-muted-foreground">
+                  Receba alertas sobre contas próximas do vencimento.
+                </p>
+              </div>
+              <Switch
+                checked={paymentRemindersEnabled}
+                onCheckedChange={togglePaymentReminders}
+              />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <Label>Importação de Transações</Label>
+                <p className="text-sm text-muted-foreground">
+                  Seja notificado quando novas transações forem importadas.
+                </p>
+              </div>
+              <Switch
+                checked={newTransactionImportsEnabled}
+                onCheckedChange={toggleNewTransactionImports}
+              />
+            </div>
           </CardContent>
         </Card>
       </div>

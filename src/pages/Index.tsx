@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { KpiCard } from '@/components/KpiCard'
-import { ArrowDown, CheckCircle } from 'lucide-react'
+import { ArrowDown, CheckCircle, Upload } from 'lucide-react'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { ExpensesBySupplierChart } from '@/components/charts/ExpensesBySupplierChart'
 import {
@@ -20,6 +20,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
+import { useSettingsStore } from '@/stores/useSettingsStore'
 
 const meses = [
   'Janeiro',
@@ -41,6 +44,19 @@ const Dashboard = () => {
   const [mes, setMes] = useState(meses[new Date().getMonth()])
   const [ano, setAno] = useState(new Date().getFullYear())
   const lancamentos = useAppStore((state) => state.lancamentos)
+  const { newTransactionImportsEnabled } = useSettingsStore()
+
+  const handleSimulateImport = () => {
+    if (newTransactionImportsEnabled) {
+      toast.success('Novas transações importadas com sucesso!', {
+        description: '5 novas despesas foram adicionadas à sua lista.',
+      })
+    } else {
+      toast.info('A importação foi concluída.', {
+        description: 'As notificações de importação estão desativadas.',
+      })
+    }
+  }
 
   const filteredLancamentos = lancamentos.filter(
     (l) => l.mes === mes && l.ano === ano,
@@ -85,31 +101,36 @@ const Dashboard = () => {
 
   return (
     <div className="page-content">
-      <div className="flex justify-end gap-4 mb-6">
-        <Select value={mes} onValueChange={setMes}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Mês" />
-          </SelectTrigger>
-          <SelectContent>
-            {meses.map((m) => (
-              <SelectItem key={m} value={m}>
-                {m}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
-          <SelectTrigger className="w-[120px]">
-            <SelectValue placeholder="Ano" />
-          </SelectTrigger>
-          <SelectContent>
-            {anos.map((a) => (
-              <SelectItem key={a} value={String(a)}>
-                {a}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex gap-4">
+          <Select value={mes} onValueChange={setMes}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Mês" />
+            </SelectTrigger>
+            <SelectContent>
+              {meses.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {m}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Ano" />
+            </SelectTrigger>
+            <SelectContent>
+              {anos.map((a) => (
+                <SelectItem key={a} value={String(a)}>
+                  {a}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" onClick={handleSimulateImport}>
+          <Upload className="mr-2 h-4 w-4" /> Simular Importação
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

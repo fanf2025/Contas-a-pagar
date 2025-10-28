@@ -1,4 +1,4 @@
-import { Menu, DollarSign, LogOut } from 'lucide-react'
+import { Menu, DollarSign, LogOut, Target } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { NavLink, useNavigate } from 'react-router-dom'
@@ -25,6 +25,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/lancamentos', label: 'Lançamentos', icon: Receipt },
   { to: '/baixas', label: 'Baixas', icon: ArrowDownCircle },
+  { to: '/metas', label: 'Metas', icon: Target },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
@@ -67,7 +68,7 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
                     <NavLink
                       key={to}
                       to={to}
-                      end
+                      end={to === '/'}
                       className={({ isActive }) =>
                         cn(
                           'flex items-center gap-3 rounded-md p-3 text-sm font-medium transition-colors',

@@ -27,3 +27,18 @@ export type FormaPagamento = {
   id: string
   nome: string
 }
+
+export type GoalContribution = {
+  id: string
+  goalId: string
+  amount: number
+  date: string
+}
+
+export type FinancialGoal = {
+  id: string
+  name: string
+  targetAmount: number
+  targetDate: string
+  contributions: GoalContribution[]
+}

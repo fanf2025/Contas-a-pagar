@@ -7,6 +7,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Receipt,
+  Target,
 } from 'lucide-react'
 import { NavLink, Link } from 'react-router-dom'
 import { useState } from 'react'
@@ -17,6 +18,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/lancamentos', label: 'Lançamentos', icon: Receipt },
   { to: '/baixas', label: 'Baixas', icon: ArrowDownCircle },
+  { to: '/metas', label: 'Metas', icon: Target },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
@@ -51,7 +53,7 @@ export const AppSidebar = () => {
           <NavLink
             key={to}
             to={to}
-            end
+            end={to === '/'}
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-md p-3 text-sm font-medium transition-colors',
