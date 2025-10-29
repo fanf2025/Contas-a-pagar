@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Upload, Download } from 'lucide-react'
+import { Upload, Download } from 'lucide-react'
 import { useAppStore } from '@/data/store'
 import { Lancamento } from '@/types'
 import { LancamentosTable } from '@/components/LancamentosTable'
@@ -17,8 +17,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { useExcelExport } from '@/hooks/useExcelExport'
 import { ImportCsvDialog } from '@/components/ImportCsvDialog'
+import { NewEntryForm, NewEntryFormValues } from '@/components/NewEntryForm'
 
 const LancamentosPage = () => {
   const {
@@ -48,7 +50,28 @@ const LancamentosPage = () => {
     setIsManageDialogOpen(false)
   }
 
-  const handleSaveLancamento = (
+  const handleAddNewLancamento = (data: NewEntryFormValues) => {
+    const today = new Date()
+    const lancamentoData = {
+      ...data,
+      data: format(today, 'yyyy-MM-dd'),
+      dataVencimento: format(data.dataVencimento, 'yyyy-MM-dd'),
+      mes: format(today, 'MMMM', { locale: ptBR }),
+      ano: today.getFullYear(),
+      tipo: 'DESPESAS' as const,
+      descricao: `${data.categoria} - Doc ${data.numeroDocumento}`,
+      valorPago: 0,
+      dataPagamento: null,
+      juros: 0,
+      tipoPagamento: 'Boleto Bancário',
+      fornecedor: data.fornecedor || 'N/A',
+    }
+
+    addLancamento(lancamentoData)
+    toast.success('Lançamento criado com sucesso!')
+  }
+
+  const handleSaveEditedLancamento = (
     data: Omit<
       Lancamento,
       'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento' | 'juros'
@@ -57,20 +80,17 @@ const LancamentosPage = () => {
     const date = new Date(data.data + 'T00:00:00')
     const lancamentoData = {
       ...data,
-      mes: format(date, 'MMMM'),
+      mes: format(date, 'MMMM', { locale: ptBR }),
       ano: date.getFullYear(),
       tipo: 'DESPESAS' as const,
-      valorPago: 0,
-      dataPagamento: null,
-      juros: 0,
+      valorPago: selectedLancamento?.valorPago || 0,
+      dataPagamento: selectedLancamento?.dataPagamento || null,
+      juros: selectedLancamento?.juros || 0,
     }
 
     if (selectedLancamento) {
       updateLancamento({ ...selectedLancamento, ...lancamentoData })
       toast.success('Lançamento atualizado com sucesso!')
-    } else {
-      addLancamento(lancamentoData)
-      toast.success('Lançamento criado com sucesso!')
     }
   }
 
@@ -105,9 +125,6 @@ const LancamentosPage = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
         <h2 className="text-2xl font-bold">Lançamentos</h2>
         <div className="flex gap-2 flex-wrap">
-          <Button onClick={() => handleOpenManageDialog()}>
-            <PlusCircle className="mr-2 h-4 w-4" /> Novo Lançamento
-          </Button>
           <Button
             variant="secondary"
             onClick={() => setIsImportDialogOpen(true)}
@@ -120,6 +137,8 @@ const LancamentosPage = () => {
         </div>
       </div>
 
+      <NewEntryForm onSubmit={handleAddNewLancamento} />
+
       <LancamentosTable
         lancamentos={lancamentos}
         onEdit={handleOpenManageDialog}
@@ -129,7 +148,7 @@ const LancamentosPage = () => {
       <ManageLancamentoDialog
         isOpen={isManageDialogOpen}
         onClose={handleCloseManageDialog}
-        onSave={handleSaveLancamento}
+        onSave={handleSaveEditedLancamento}
         lancamento={selectedLancamento}
       />
 
