@@ -81,7 +81,7 @@ export const ManageLancamentoDialog = ({
   })
 
   useEffect(() => {
-    if (lancamento) {
+    if (isOpen && lancamento) {
       reset({
         descricao: lancamento.descricao,
         valor: lancamento.valor,
@@ -92,10 +92,10 @@ export const ManageLancamentoDialog = ({
         fornecedor: lancamento.fornecedor,
         tipoPagamento: lancamento.tipoPagamento,
       })
-    } else {
+    } else if (isOpen && !lancamento) {
       reset({
         descricao: '',
-        valor: 0,
+        valor: undefined,
         data: new Date(),
         dataVencimento: undefined,
         numeroDocumento: '',
@@ -117,7 +117,7 @@ export const ManageLancamentoDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {lancamento ? 'Editar Lançamento' : 'Novo Lançamento'}
@@ -127,55 +127,41 @@ export const ManageLancamentoDialog = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleSave)} className="space-y-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="descricao" className="text-right">
-              Descrição
-            </Label>
-            <Input
-              id="descricao"
-              {...register('descricao')}
-              className="col-span-3"
-            />
+          <div className="space-y-1">
+            <Label htmlFor="descricao">Descrição</Label>
+            <Input id="descricao" {...register('descricao')} />
             {errors.descricao && (
-              <p className="col-span-4 text-sm text-destructive text-right">
+              <p className="text-sm text-destructive">
                 {errors.descricao.message}
               </p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="numeroDocumento" className="text-right">
-              Nº Doc
-            </Label>
-            <Input
-              id="numeroDocumento"
-              {...register('numeroDocumento')}
-              className="col-span-3"
-            />
+          <div className="space-y-1">
+            <Label htmlFor="numeroDocumento">Nº Doc</Label>
+            <Input id="numeroDocumento" {...register('numeroDocumento')} />
             {errors.numeroDocumento && (
-              <p className="col-span-4 text-sm text-destructive text-right">
+              <p className="text-sm text-destructive">
                 {errors.numeroDocumento.message}
               </p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="valor" className="text-right">
-              Valor (R$)
-            </Label>
+          <div className="space-y-1">
+            <Label htmlFor="valor">Valor (R$)</Label>
             <Input
               id="valor"
               type="number"
               step="0.01"
               {...register('valor')}
-              className="col-span-3"
+              onKeyDown={(e) =>
+                ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()
+              }
             />
             {errors.valor && (
-              <p className="col-span-4 text-sm text-destructive text-right">
-                {errors.valor.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.valor.message}</p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Data</Label>
+          <div className="space-y-1">
+            <Label>Data</Label>
             <Controller
               name="data"
               control={control}
@@ -185,7 +171,7 @@ export const ManageLancamentoDialog = ({
                     <Button
                       variant={'outline'}
                       className={cn(
-                        'col-span-3 justify-start text-left font-normal',
+                        'w-full justify-start text-left font-normal',
                         !field.value && 'text-muted-foreground',
                       )}
                     >
@@ -209,13 +195,11 @@ export const ManageLancamentoDialog = ({
               )}
             />
             {errors.data && (
-              <p className="col-span-4 text-sm text-destructive text-right">
-                {errors.data.message}
-              </p>
+              <p className="text-sm text-destructive">{errors.data.message}</p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Vencimento</Label>
+          <div className="space-y-1">
+            <Label>Vencimento</Label>
             <Controller
               name="dataVencimento"
               control={control}
@@ -225,7 +209,7 @@ export const ManageLancamentoDialog = ({
                     <Button
                       variant={'outline'}
                       className={cn(
-                        'col-span-3 justify-start text-left font-normal',
+                        'w-full justify-start text-left font-normal',
                         !field.value && 'text-muted-foreground',
                       )}
                     >
@@ -249,13 +233,13 @@ export const ManageLancamentoDialog = ({
               )}
             />
             {errors.dataVencimento && (
-              <p className="col-span-4 text-sm text-destructive text-right">
+              <p className="text-sm text-destructive">
                 {errors.dataVencimento.message}
               </p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Categoria</Label>
+          <div className="space-y-1">
+            <Label>Categoria</Label>
             <Controller
               name="categoria"
               control={control}
@@ -264,7 +248,7 @@ export const ManageLancamentoDialog = ({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
@@ -278,13 +262,13 @@ export const ManageLancamentoDialog = ({
               )}
             />
             {errors.categoria && (
-              <p className="col-span-4 text-sm text-destructive text-right">
+              <p className="text-sm text-destructive">
                 {errors.categoria.message}
               </p>
             )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Fornecedor</Label>
+          <div className="space-y-1">
+            <Label>Fornecedor</Label>
             <Controller
               name="fornecedor"
               control={control}
@@ -293,7 +277,7 @@ export const ManageLancamentoDialog = ({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -307,8 +291,8 @@ export const ManageLancamentoDialog = ({
               )}
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Pagamento</Label>
+          <div className="space-y-1">
+            <Label>Pagamento</Label>
             <Controller
               name="tipoPagamento"
               control={control}
@@ -317,7 +301,7 @@ export const ManageLancamentoDialog = ({
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger>
                     <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
@@ -331,7 +315,7 @@ export const ManageLancamentoDialog = ({
               )}
             />
             {errors.tipoPagamento && (
-              <p className="col-span-4 text-sm text-destructive text-right">
+              <p className="text-sm text-destructive">
                 {errors.tipoPagamento.message}
               </p>
             )}
