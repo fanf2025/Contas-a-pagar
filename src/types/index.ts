@@ -1,16 +1,19 @@
 export type Lancamento = {
   id: string
   data: string
+  dataVencimento: string
   mes: string
   ano: number
   tipo: 'DESPESAS'
   categoria: string
   descricao: string
   fornecedor: string
+  numeroDocumento: string
   valor: number
   valorPago: number
   tipoPagamento: string
   dataPagamento: string | null
+  juros?: number
 }
 
 export type Categoria = {

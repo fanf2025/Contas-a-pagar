@@ -39,8 +39,9 @@ export const LancamentosTable = ({
         <TableHeader>
           <TableRow>
             <TableHead>Descrição</TableHead>
+            <TableHead>Nº Doc</TableHead>
+            <TableHead>Vencimento</TableHead>
             <TableHead>Categoria</TableHead>
-            <TableHead>Data</TableHead>
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-right">Ações</TableHead>
@@ -53,10 +54,11 @@ export const LancamentosTable = ({
                 <TableCell className="font-medium">
                   {lancamento.descricao}
                 </TableCell>
-                <TableCell>{lancamento.categoria}</TableCell>
+                <TableCell>{lancamento.numeroDocumento}</TableCell>
                 <TableCell>
-                  {format(parseISO(lancamento.data), 'dd/MM/yyyy')}
+                  {format(parseISO(lancamento.dataVencimento), 'dd/MM/yyyy')}
                 </TableCell>
+                <TableCell>{lancamento.categoria}</TableCell>
                 <TableCell className="text-right">
                   {lancamento.valor.toLocaleString('pt-BR', {
                     style: 'currency',
@@ -95,7 +97,7 @@ export const LancamentosTable = ({
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
+              <TableCell colSpan={7} className="h-24 text-center">
                 Nenhum lançamento encontrado.
               </TableCell>
             </TableRow>

@@ -28,6 +28,7 @@ const initialFornecedores: Fornecedor[] = [
   { id: '3', nome: 'Imobiliária Central' },
   { id: '4', nome: 'Agência Criativa' },
   { id: '5', nome: 'Contabiliza S.A.' },
+  { id: '6', nome: 'Tech Solutions' },
 ]
 
 const initialFormasPagamento: FormaPagamento[] = [
@@ -40,7 +41,9 @@ const initialFormasPagamento: FormaPagamento[] = [
 const initialLancamentos: Lancamento[] = [
   {
     id: '1',
-    data: '2025-07-10',
+    data: '2025-07-01',
+    dataVencimento: '2025-07-10',
+    numeroDocumento: 'DOC-001',
     mes: 'Julho',
     ano: 2025,
     tipo: 'DESPESAS',
@@ -51,10 +54,13 @@ const initialLancamentos: Lancamento[] = [
     valorPago: 1500.75,
     tipoPagamento: 'Boleto Bancário',
     dataPagamento: '2025-07-10',
+    juros: 0,
   },
   {
     id: '2',
-    data: '2025-07-05',
+    data: '2025-07-01',
+    dataVencimento: '2025-07-05',
+    numeroDocumento: 'DOC-002',
     mes: 'Julho',
     ano: 2025,
     tipo: 'DESPESAS',
@@ -65,10 +71,13 @@ const initialLancamentos: Lancamento[] = [
     valorPago: 5000.0,
     tipoPagamento: 'Débito em Conta',
     dataPagamento: '2025-07-05',
+    juros: 0,
   },
   {
     id: '3',
-    data: '2025-11-15',
+    data: '2025-11-01',
+    dataVencimento: '2025-11-15',
+    numeroDocumento: 'DOC-003',
     mes: 'Novembro',
     ano: 2025,
     tipo: 'DESPESAS',
@@ -79,10 +88,13 @@ const initialLancamentos: Lancamento[] = [
     valorPago: 0,
     tipoPagamento: 'Transferência (PIX)',
     dataPagamento: null,
+    juros: 0,
   },
   {
     id: '4',
-    data: '2025-06-20',
+    data: '2025-06-15',
+    dataVencimento: '2025-06-20',
+    numeroDocumento: 'DOC-004',
     mes: 'Junho',
     ano: 2025,
     tipo: 'DESPESAS',
@@ -93,6 +105,24 @@ const initialLancamentos: Lancamento[] = [
     valorPago: 850.0,
     tipoPagamento: 'Cartão de Crédito',
     dataPagamento: '2025-06-20',
+    juros: 0,
+  },
+  {
+    id: '5',
+    data: '2025-10-20',
+    dataVencimento: '2025-11-30',
+    numeroDocumento: 'DOC-005',
+    mes: 'Novembro',
+    ano: 2025,
+    tipo: 'DESPESAS',
+    categoria: 'Software e TI',
+    descricao: 'Licença de software anual',
+    fornecedor: 'Tech Solutions',
+    valor: 1200.0,
+    valorPago: 0,
+    tipoPagamento: 'Boleto Bancário',
+    dataPagamento: null,
+    juros: 0,
   },
 ]
 

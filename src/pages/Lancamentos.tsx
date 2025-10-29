@@ -51,7 +51,7 @@ const LancamentosPage = () => {
   const handleSaveLancamento = (
     data: Omit<
       Lancamento,
-      'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento'
+      'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento' | 'juros'
     >,
   ) => {
     const date = new Date(data.data + 'T00:00:00')
@@ -62,6 +62,7 @@ const LancamentosPage = () => {
       tipo: 'DESPESAS' as const,
       valorPago: 0,
       dataPagamento: null,
+      juros: 0,
     }
 
     if (selectedLancamento) {

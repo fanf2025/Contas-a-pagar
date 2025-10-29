@@ -37,6 +37,10 @@ const lancamentoSchema = z.object({
   descricao: z.string().min(3, 'A descrição é obrigatória.'),
   valor: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
   data: z.date({ required_error: 'A data do lançamento é obrigatória.' }),
+  dataVencimento: z.date({
+    required_error: 'A data de vencimento é obrigatória.',
+  }),
+  numeroDocumento: z.string().min(1, 'O Nº do Documento é obrigatório.'),
   categoria: z.string({ required_error: 'A categoria é obrigatória.' }),
   fornecedor: z.string().optional(),
   tipoPagamento: z.string({
@@ -52,7 +56,7 @@ type ManageLancamentoDialogProps = {
   onSave: (
     data: Omit<
       Lancamento,
-      'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento'
+      'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento' | 'juros'
     >,
   ) => void
   lancamento?: Lancamento | null
@@ -82,6 +86,8 @@ export const ManageLancamentoDialog = ({
         descricao: lancamento.descricao,
         valor: lancamento.valor,
         data: parseISO(lancamento.data),
+        dataVencimento: parseISO(lancamento.dataVencimento),
+        numeroDocumento: lancamento.numeroDocumento,
         categoria: lancamento.categoria,
         fornecedor: lancamento.fornecedor,
         tipoPagamento: lancamento.tipoPagamento,
@@ -91,6 +97,8 @@ export const ManageLancamentoDialog = ({
         descricao: '',
         valor: 0,
         data: new Date(),
+        dataVencimento: undefined,
+        numeroDocumento: '',
         categoria: undefined,
         fornecedor: undefined,
         tipoPagamento: undefined,
@@ -99,7 +107,11 @@ export const ManageLancamentoDialog = ({
   }, [lancamento, isOpen, reset])
 
   const handleSave = (data: LancamentoFormValues) => {
-    onSave({ ...data, data: format(data.data, 'yyyy-MM-dd') })
+    onSave({
+      ...data,
+      data: format(data.data, 'yyyy-MM-dd'),
+      dataVencimento: format(data.dataVencimento, 'yyyy-MM-dd'),
+    })
     onClose()
   }
 
@@ -127,6 +139,21 @@ export const ManageLancamentoDialog = ({
             {errors.descricao && (
               <p className="col-span-4 text-sm text-destructive text-right">
                 {errors.descricao.message}
+              </p>
+            )}
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="numeroDocumento" className="text-right">
+              Nº Doc
+            </Label>
+            <Input
+              id="numeroDocumento"
+              {...register('numeroDocumento')}
+              className="col-span-3"
+            />
+            {errors.numeroDocumento && (
+              <p className="col-span-4 text-sm text-destructive text-right">
+                {errors.numeroDocumento.message}
               </p>
             )}
           </div>
@@ -184,6 +211,46 @@ export const ManageLancamentoDialog = ({
             {errors.data && (
               <p className="col-span-4 text-sm text-destructive text-right">
                 {errors.data.message}
+              </p>
+            )}
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Vencimento</Label>
+            <Controller
+              name="dataVencimento"
+              control={control}
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={'outline'}
+                      className={cn(
+                        'col-span-3 justify-start text-left font-normal',
+                        !field.value && 'text-muted-foreground',
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, 'PPP', { locale: ptBR })
+                      ) : (
+                        <span>Escolha uma data</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {errors.dataVencimento && (
+              <p className="col-span-4 text-sm text-destructive text-right">
+                {errors.dataVencimento.message}
               </p>
             )}
           </div>
