@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -9,6 +8,9 @@ import {
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useSettingsStore } from '@/stores/useSettingsStore'
+import { CategoryManager } from '@/components/CategoryManager'
+import { SupplierManager } from '@/components/SupplierManager'
+import { Button } from '@/components/ui/button'
 import { PlusCircle } from 'lucide-react'
 
 const ConfiguracoesPage = () => {
@@ -22,37 +24,15 @@ const ConfiguracoesPage = () => {
   return (
     <div className="page-content">
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Categorias</CardTitle>
-            <CardDescription>
-              Gerencie as categorias de despesas.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full">
-              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Categoria
-            </Button>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Fornecedores</CardTitle>
-            <CardDescription>Gerencie os fornecedores.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full">
-              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Fornecedor
-            </Button>
-          </CardContent>
-        </Card>
+        <CategoryManager />
+        <SupplierManager />
         <Card>
           <CardHeader>
             <CardTitle>Formas de Pagamento</CardTitle>
             <CardDescription>Gerencie as formas de pagamento.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">
+            <Button className="w-full" disabled>
               <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Forma de
               Pagamento
             </Button>

@@ -17,18 +17,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { format, addDays } from 'date-fns'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { CalendarIcon } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Lancamento } from '@/types'
 import { useAppStore } from '@/data/store'
+import { cn } from '@/lib/utils'
 
 const lancamentoSchema = z.object({
+  dataVencimento: z.date({
+    required_error: 'A data de vencimento é obrigatória.',
+  }),
   categoria: z.string({ required_error: 'A categoria é obrigatória.' }),
   fornecedor: z.string().optional(),
   numeroDocumento: z.string().min(1, 'O Nº do Documento é obrigatório.'),
-  valor: z.coerce.number().min(0.01, 'O valor deve ser maior que zero.'),
+  valor: z.coerce.number().positive('O valor deve ser um número positivo.'),
 })
 
 type LancamentoFormValues = z.infer<typeof lancamentoSchema>
@@ -39,7 +51,14 @@ type ManageLancamentoDialogProps = {
   onSave: (
     data: Omit<
       Lancamento,
-      'id' | 'mes' | 'ano' | 'tipo' | 'valorPago' | 'dataPagamento' | 'juros'
+      | 'id'
+      | 'mes'
+      | 'ano'
+      | 'tipo'
+      | 'valorPago'
+      | 'dataPagamento'
+      | 'juros'
+      | 'data'
     >,
   ) => void
   lancamento?: Lancamento | null
@@ -51,7 +70,7 @@ export const ManageLancamentoDialog = ({
   onSave,
   lancamento,
 }: ManageLancamentoDialogProps) => {
-  const { categorias, fornecedores, formasPagamento } = useAppStore()
+  const { categorias, fornecedores } = useAppStore()
 
   const {
     register,
@@ -64,34 +83,34 @@ export const ManageLancamentoDialog = ({
   })
 
   useEffect(() => {
-    if (isOpen && lancamento) {
-      reset({
-        categoria: lancamento.categoria,
-        fornecedor: lancamento.fornecedor,
-        numeroDocumento: lancamento.numeroDocumento,
-        valor: lancamento.valor,
-      })
-    } else if (isOpen && !lancamento) {
-      reset({
-        categoria: undefined,
-        fornecedor: undefined,
-        numeroDocumento: '',
-        valor: undefined,
-      })
+    if (isOpen) {
+      if (lancamento) {
+        reset({
+          dataVencimento: new Date(lancamento.dataVencimento),
+          categoria: lancamento.categoria,
+          fornecedor: lancamento.fornecedor,
+          numeroDocumento: lancamento.numeroDocumento,
+          valor: lancamento.valor,
+        })
+      } else {
+        reset({
+          dataVencimento: undefined,
+          categoria: undefined,
+          fornecedor: undefined,
+          numeroDocumento: '',
+          valor: undefined,
+        })
+      }
     }
   }, [lancamento, isOpen, reset])
 
   const handleSave = (data: LancamentoFormValues) => {
-    const today = new Date()
     const defaultDescricao = `Lançamento ${data.numeroDocumento}`
-    const defaultTipoPagamento = formasPagamento[0]?.nome || 'Boleto Bancário'
-
     onSave({
       ...data,
-      data: format(today, 'yyyy-MM-dd'),
-      dataVencimento: format(addDays(today, 30), 'yyyy-MM-dd'),
+      dataVencimento: format(data.dataVencimento, 'yyyy-MM-dd'),
       descricao: data.fornecedor || defaultDescricao,
-      tipoPagamento: defaultTipoPagamento,
+      tipoPagamento: 'Boleto Bancário',
     })
     onClose()
   }
@@ -108,6 +127,46 @@ export const ManageLancamentoDialog = ({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(handleSave)} className="space-y-4 py-4">
+          <div className="space-y-1">
+            <Label>Data de Vencimento</Label>
+            <Controller
+              name="dataVencimento"
+              control={control}
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant={'outline'}
+                      className={cn(
+                        'w-full justify-start text-left font-normal',
+                        !field.value && 'text-muted-foreground',
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, 'dd/MM/yyyy')
+                      ) : (
+                        <span>Selecione uma data</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {errors.dataVencimento && (
+              <p className="text-sm text-destructive">
+                {errors.dataVencimento.message}
+              </p>
+            )}
+          </div>
           <div className="space-y-1">
             <Label>Categoria</Label>
             <Controller
@@ -177,9 +236,6 @@ export const ManageLancamentoDialog = ({
               type="number"
               step="0.01"
               {...register('valor')}
-              onKeyDown={(e) =>
-                ['e', 'E', '+', '-'].includes(e.key) && e.preventDefault()
-              }
             />
             {errors.valor && (
               <p className="text-sm text-destructive">{errors.valor.message}</p>
