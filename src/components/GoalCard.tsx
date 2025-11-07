@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { FinancialGoal } from '@/types'
 import { format, parseISO } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { Edit, Trash2, PlusCircle } from 'lucide-react'
 
 type GoalCardProps = {

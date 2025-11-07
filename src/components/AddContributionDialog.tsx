@@ -13,7 +13,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { GoalContribution } from '@/types'
-import { format } from 'date-fns'
 
 const contributionSchema = z.object({
   amount: z.coerce

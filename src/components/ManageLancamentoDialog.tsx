@@ -25,7 +25,6 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -37,7 +36,9 @@ const lancamentoSchema = z.object({
   dataVencimento: z.date({
     required_error: 'A data de vencimento é obrigatória.',
   }),
-  categoria: z.string({ required_error: 'A categoria é obrigatória.' }),
+  categoria: z
+    .string({ required_error: 'A categoria é obrigatória.' })
+    .min(1, 'A categoria é obrigatória.'),
   fornecedor: z.string().optional(),
   numeroDocumento: z.string().min(1, 'O Nº do Documento é obrigatório.'),
   valor: z.coerce.number().positive('O valor deve ser um número positivo.'),

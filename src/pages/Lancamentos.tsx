@@ -42,6 +42,7 @@ import { ptBR } from 'date-fns/locale'
 import { DateRange } from 'react-day-picker'
 import { useExcelExport } from '@/hooks/useExcelExport'
 import { ImportCsvDialog } from '@/components/ImportCsvDialog'
+import { Card } from '@/components/ui/card'
 
 const LancamentosPage = () => {
   const {

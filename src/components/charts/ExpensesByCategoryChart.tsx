@@ -10,8 +10,6 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartConfig } from '@/components/ui/chart'
@@ -54,7 +52,7 @@ export const ExpensesByCategoryChart = ({ data }: { data: ChartData }) => {
               />
               <YAxis
                 tickFormatter={(value) =>
-                  `R$${((value as number) / 1000).toFixed(0)}k`
+                  `R${((value as number) / 1000).toFixed(0)}k`
                 }
               />
               <ChartTooltip

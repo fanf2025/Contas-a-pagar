@@ -13,18 +13,14 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
-import {
-  Calendar as CalendarIcon,
-  File,
-  FileText,
-  FileSpreadsheet,
-} from 'lucide-react'
+import { Calendar as CalendarIcon, File, FileSpreadsheet } from 'lucide-react'
 import { DateRange } from 'react-day-picker'
 import { addDays, format } from 'date-fns'
 import { useAppStore } from '@/data/store'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { ExpensesBySupplierChart } from '@/components/charts/ExpensesBySupplierChart'
 import { MonthlyExpenseTrendChart } from '@/components/charts/MonthlyExpenseTrendChart'
+import { Card } from '@/components/ui/card'
 
 type ReportType = 'cat' | 'for' | 'status' | 'trend'
 
@@ -89,10 +85,10 @@ const RelatoriosPage = () => {
           .sort(
             (a, b) =>
               new Date(
-                `01/${a.month.split('/')[0]} /20${a.month.split('/')[1]}`,
+                `01/${a.month.split('/')[0]}/20${a.month.split('/')[1]}`,
               ).getTime() -
               new Date(
-                `01/${b.month.split('/')[0]} /20${b.month.split('/')[1]}`,
+                `01/${b.month.split('/')[0]}/20${b.month.split('/')[1]}`,
               ).getTime(),
           )
         return <MonthlyExpenseTrendChart data={chartData} />
@@ -111,7 +107,7 @@ const RelatoriosPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Relatórios Avançados</h2>
       </div>
-      <div className="bg-card p-6 rounded-lg shadow">
+      <Card className="p-6">
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Select onValueChange={(value: ReportType) => setReportType(value)}>
             <SelectTrigger className="w-full md:w-[280px]">
@@ -183,7 +179,7 @@ const RelatoriosPage = () => {
             </p>
           )}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

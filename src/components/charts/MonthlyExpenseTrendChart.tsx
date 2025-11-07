@@ -42,7 +42,7 @@ export const MonthlyExpenseTrendChart = ({ data }: { data: ChartData }) => {
           />
           <YAxis
             tickFormatter={(value) =>
-              `R$${((value as number) / 1000).toFixed(0)}k`
+              `R${((value as number) / 1000).toFixed(0)}k`
             }
           />
           <ChartTooltip
