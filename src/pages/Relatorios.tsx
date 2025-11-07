@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -15,113 +8,60 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { Calendar as CalendarIcon, File, FileSpreadsheet } from 'lucide-react'
 import { DateRange } from 'react-day-picker'
-import { addDays, format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { useAppStore } from '@/data/store'
-import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
-import { ExpensesBySupplierChart } from '@/components/charts/ExpensesBySupplierChart'
-import { MonthlyExpenseTrendChart } from '@/components/charts/MonthlyExpenseTrendChart'
 import { Card } from '@/components/ui/card'
-
-type ReportType = 'cat' | 'for' | 'status' | 'trend'
+import { Lancamento } from '@/types'
+import { RelatorioLancamentosTable } from '@/components/RelatorioLancamentosTable'
+import { useExcelExport } from '@/hooks/useExcelExport'
+import { toast } from 'sonner'
 
 const RelatoriosPage = () => {
-  const [reportType, setReportType] = useState<ReportType | null>(null)
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -30),
-    to: new Date(),
-  })
+  const [date, setDate] = useState<DateRange | undefined>()
+  const [reportData, setReportData] = useState<Lancamento[] | null>(null)
   const { lancamentos } = useAppStore()
+  const { exportToExcel } = useExcelExport()
 
-  const generateReport = () => {
-    if (!reportType || !date?.from || !date?.to) return null
+  const handleGenerateReport = () => {
+    if (!date?.from || !date?.to) {
+      toast.warning('Período inválido', {
+        description: 'Por favor, selecione uma data de início e fim.',
+      })
+      return
+    }
 
     const filtered = lancamentos.filter((l) => {
-      const lDate = new Date(l.data)
-      return lDate >= date.from! && lDate <= date.to!
+      const vencimentoDate = parseISO(l.dataVencimento)
+      return vencimentoDate >= date.from! && vencimentoDate <= date.to!
     })
 
-    switch (reportType) {
-      case 'cat': {
-        const data = filtered.reduce(
-          (acc, l) => {
-            acc[l.categoria] = (acc[l.categoria] || 0) + l.valor
-            return acc
-          },
-          {} as Record<string, number>,
-        )
-        const chartData = Object.entries(data).map(([categoria, total]) => ({
-          categoria,
-          total,
-        }))
-        return <ExpensesByCategoryChart data={chartData} />
-      }
-      case 'for': {
-        const data = filtered.reduce(
-          (acc, l) => {
-            if (l.fornecedor !== 'N/A') {
-              acc[l.fornecedor] = (acc[l.fornecedor] || 0) + l.valor
-            }
-            return acc
-          },
-          {} as Record<string, number>,
-        )
-        const chartData = Object.entries(data).map(([fornecedor, total]) => ({
-          fornecedor,
-          total,
-        }))
-        return <ExpensesBySupplierChart data={chartData} />
-      }
-      case 'trend': {
-        const data = filtered.reduce(
-          (acc, l) => {
-            const month = format(new Date(l.data), 'MMM/yy')
-            acc[month] = (acc[month] || 0) + l.valor
-            return acc
-          },
-          {} as Record<string, number>,
-        )
-        const chartData = Object.entries(data)
-          .map(([month, total]) => ({ month, total }))
-          .sort(
-            (a, b) =>
-              new Date(
-                `01/${a.month.split('/')[0]}/20${a.month.split('/')[1]}`,
-              ).getTime() -
-              new Date(
-                `01/${b.month.split('/')[0]}/20${b.month.split('/')[1]}`,
-              ).getTime(),
-          )
-        return <MonthlyExpenseTrendChart data={chartData} />
-      }
-      default:
-        return (
-          <p className="text-muted-foreground">
-            Relatório de status ainda não implementado.
-          </p>
-        )
+    setReportData(filtered)
+  }
+
+  const handleExportExcel = () => {
+    if (!reportData || reportData.length === 0) {
+      toast.info('Nenhum dado para exportar', {
+        description: 'Gere um relatório com dados antes de exportar.',
+      })
+      return
     }
+    const filename = `relatorio_lancamentos_${format(new Date(), 'yyyy-MM-dd')}.xlsx`
+    exportToExcel(reportData, filename)
+  }
+
+  const handleExportPdf = () => {
+    toast.info('Função em desenvolvimento', {
+      description: 'A exportação para PDF estará disponível em breve.',
+    })
   }
 
   return (
     <div className="page-content">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Relatórios Avançados</h2>
+        <h2 className="text-2xl font-bold">Relatórios de Lançamentos</h2>
       </div>
       <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <Select onValueChange={(value: ReportType) => setReportType(value)}>
-            <SelectTrigger className="w-full md:w-[280px]">
-              <SelectValue placeholder="Selecione um modelo de relatório" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cat">Despesas por Categoria</SelectItem>
-              <SelectItem value="for">Despesas por Fornecedor</SelectItem>
-              <SelectItem value="trend">
-                Tendência Mensal de Despesas
-              </SelectItem>
-              <SelectItem value="status">Despesas Pagas x Em Aberto</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -133,14 +73,14 @@ const RelatoriosPage = () => {
                 {date?.from ? (
                   date.to ? (
                     <>
-                      {format(date.from, 'LLL dd, y')} -{' '}
-                      {format(date.to, 'LLL dd, y')}
+                      {format(date.from, 'dd/MM/y')} -{' '}
+                      {format(date.to, 'dd/MM/y')}
                     </>
                   ) : (
-                    format(date.from, 'LLL dd, y')
+                    format(date.from, 'dd/MM/y')
                   )
                 ) : (
-                  <span>Escolha um período</span>
+                  <span>Selecione o período</span>
                 )}
               </Button>
             </PopoverTrigger>
@@ -155,31 +95,31 @@ const RelatoriosPage = () => {
               />
             </PopoverContent>
           </Popover>
+          <Button onClick={handleGenerateReport}>Gerar Relatório</Button>
         </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={() => console.log('Exporting PDF...')}
-          >
-            <File className="mr-2 h-4 w-4" /> Exportar PDF
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => console.log('Exporting Excel...')}
-          >
-            <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
-          </Button>
-        </div>
-        <div className="mt-6 min-h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg p-4">
-          {reportType ? (
-            generateReport()
-          ) : (
-            <p className="text-muted-foreground">
-              Selecione um relatório e um período para visualizar os dados.
-            </p>
-          )}
-        </div>
+
+        {reportData !== null && (
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleExportPdf}>
+              <File className="mr-2 h-4 w-4" /> Exportar PDF
+            </Button>
+            <Button variant="outline" onClick={handleExportExcel}>
+              <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
+            </Button>
+          </div>
+        )}
       </Card>
+
+      {reportData !== null ? (
+        <RelatorioLancamentosTable lancamentos={reportData} />
+      ) : (
+        <div className="mt-6 min-h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg p-4">
+          <p className="text-muted-foreground text-center">
+            Selecione um período e clique em "Gerar Relatório" para visualizar
+            os lançamentos.
+          </p>
+        </div>
+      )}
     </div>
   )
 }
