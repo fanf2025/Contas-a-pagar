@@ -10,8 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { useSettingsStore } from '@/stores/useSettingsStore'
 import { CategoryManager } from '@/components/CategoryManager'
 import { SupplierManager } from '@/components/SupplierManager'
-import { Button } from '@/components/ui/button'
-import { PlusCircle } from 'lucide-react'
+import { PaymentMethodManager } from '@/components/PaymentMethodManager'
 
 const ConfiguracoesPage = () => {
   const {
@@ -26,18 +25,7 @@ const ConfiguracoesPage = () => {
       <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
         <CategoryManager />
         <SupplierManager />
-        <Card>
-          <CardHeader>
-            <CardTitle>Formas de Pagamento</CardTitle>
-            <CardDescription>Gerencie as formas de pagamento.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="w-full" disabled>
-              <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Forma de
-              Pagamento
-            </Button>
-          </CardContent>
-        </Card>
+        <PaymentMethodManager />
         <Card>
           <CardHeader>
             <CardTitle>Notificações</CardTitle>
