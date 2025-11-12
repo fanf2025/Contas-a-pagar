@@ -23,7 +23,7 @@ import {
   CalendarIcon,
 } from 'lucide-react'
 import { useAppStore } from '@/data/store'
-import { Lancamento } from '@/types'
+import { Lancamento, CashEntry } from '@/types'
 import { LancamentosTable } from '@/components/LancamentosTable'
 import { ManageLancamentoDialog } from '@/components/ManageLancamentoDialog'
 import {
@@ -46,6 +46,7 @@ import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { CashEntryForm } from '@/components/CashEntryForm'
 import { CashEntriesTable } from '@/components/CashEntriesTable'
+import { ManageCashEntryDialog } from '@/components/ManageCashEntryDialog'
 
 const LancamentosPage = () => {
   const {
@@ -57,6 +58,8 @@ const LancamentosPage = () => {
     categorias,
     fornecedores,
     cashEntries,
+    updateCashEntry,
+    deleteCashEntry,
   } = useAppStore()
 
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
@@ -68,6 +71,17 @@ const LancamentosPage = () => {
   >(null)
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const { exportToExcel } = useExcelExport()
+
+  const [isManageCashEntryDialogOpen, setIsManageCashEntryDialogOpen] =
+    useState(false)
+  const [selectedCashEntry, setSelectedCashEntry] = useState<CashEntry | null>(
+    null,
+  )
+  const [isDeleteCashEntryDialogOpen, setIsDeleteCashEntryDialogOpen] =
+    useState(false)
+  const [cashEntryToDeleteId, setCashEntryToDeleteId] = useState<string | null>(
+    null,
+  )
 
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -185,6 +199,35 @@ const LancamentosPage = () => {
     setDateFilter(undefined)
   }
 
+  const handleOpenManageCashEntry = (entry: CashEntry) => {
+    setSelectedCashEntry(entry)
+    setIsManageCashEntryDialogOpen(true)
+  }
+
+  const handleCloseManageCashEntry = () => {
+    setSelectedCashEntry(null)
+    setIsManageCashEntryDialogOpen(false)
+  }
+
+  const handleSaveCashEntry = (data: CashEntry) => {
+    updateCashEntry(data)
+    toast.success('Lançamento de caixa atualizado com sucesso!')
+  }
+
+  const handleDeleteCashEntryRequest = (id: string) => {
+    setCashEntryToDeleteId(id)
+    setIsDeleteCashEntryDialogOpen(true)
+  }
+
+  const handleDeleteCashEntryConfirm = () => {
+    if (cashEntryToDeleteId) {
+      deleteCashEntry(cashEntryToDeleteId)
+      toast.success('Lançamento de caixa excluído com sucesso!')
+      setIsDeleteCashEntryDialogOpen(false)
+      setCashEntryToDeleteId(null)
+    }
+  }
+
   return (
     <div className="page-content">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -286,7 +329,11 @@ const LancamentosPage = () => {
 
       <div className="space-y-6">
         <CashEntryForm />
-        <CashEntriesTable entries={cashEntries} />
+        <CashEntriesTable
+          entries={cashEntries}
+          onEdit={handleOpenManageCashEntry}
+          onDelete={handleDeleteCashEntryRequest}
+        />
       </div>
 
       <ManageLancamentoDialog
@@ -319,6 +366,36 @@ const LancamentosPage = () => {
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <ManageCashEntryDialog
+        isOpen={isManageCashEntryDialogOpen}
+        onClose={handleCloseManageCashEntry}
+        onSave={handleSaveCashEntry}
+        entry={selectedCashEntry}
+      />
+
+      <AlertDialog
+        open={isDeleteCashEntryDialogOpen}
+        onOpenChange={setIsDeleteCashEntryDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o
+              lançamento de caixa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setCashEntryToDeleteId(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCashEntryConfirm}>
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

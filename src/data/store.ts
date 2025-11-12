@@ -189,6 +189,8 @@ interface AppState {
   deleteFinancialGoal: (id: string) => void
   addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => void
   addCashEntry: (entry: Omit<CashEntry, 'id'>) => void
+  updateCashEntry: (entry: CashEntry) => void
+  deleteCashEntry: (id: string) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -320,6 +322,16 @@ export const useAppStore = create<AppState>()(
             ...state.cashEntries,
             { ...entry, id: new Date().toISOString() + Math.random() },
           ],
+        })),
+      updateCashEntry: (entry) =>
+        set((state) => ({
+          cashEntries: state.cashEntries.map((e) =>
+            e.id === entry.id ? entry : e,
+          ),
+        })),
+      deleteCashEntry: (id) =>
+        set((state) => ({
+          cashEntries: state.cashEntries.filter((e) => e.id !== id),
         })),
     }),
     {

@@ -15,12 +15,26 @@ import {
 } from '@/components/ui/card'
 import { CashEntry } from '@/types'
 import { format, parseISO } from 'date-fns'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
+import { MoreHorizontal, Edit, Trash2 } from 'lucide-react'
 
 type CashEntriesTableProps = {
   entries: CashEntry[]
+  onEdit: (entry: CashEntry) => void
+  onDelete: (id: string) => void
 }
 
-export const CashEntriesTable = ({ entries }: CashEntriesTableProps) => {
+export const CashEntriesTable = ({
+  entries,
+  onEdit,
+  onDelete,
+}: CashEntriesTableProps) => {
   return (
     <Card>
       <CardHeader>
@@ -37,6 +51,7 @@ export const CashEntriesTable = ({ entries }: CashEntriesTableProps) => {
                 <TableHead>Data</TableHead>
                 <TableHead>Origem</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
+                <TableHead className="w-[80px] text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -55,11 +70,31 @@ export const CashEntriesTable = ({ entries }: CashEntriesTableProps) => {
                         currency: 'BRL',
                       })}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => onEdit(entry)}>
+                            <Edit className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onDelete(entry.id)}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
+                  <TableCell colSpan={4} className="h-24 text-center">
                     Nenhum lançamento de caixa encontrado.
                   </TableCell>
                 </TableRow>
