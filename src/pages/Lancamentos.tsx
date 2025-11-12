@@ -43,6 +43,9 @@ import { DateRange } from 'react-day-picker'
 import { useExcelExport } from '@/hooks/useExcelExport'
 import { ImportCsvDialog } from '@/components/ImportCsvDialog'
 import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { CashEntryForm } from '@/components/CashEntryForm'
+import { CashEntriesTable } from '@/components/CashEntriesTable'
 
 const LancamentosPage = () => {
   const {
@@ -53,6 +56,7 @@ const LancamentosPage = () => {
     addMultipleLancamentos,
     categorias,
     fornecedores,
+    cashEntries,
   } = useAppStore()
 
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false)
@@ -277,6 +281,13 @@ const LancamentosPage = () => {
         onEdit={handleOpenManageDialog}
         onDeleteRequest={handleDeleteRequest}
       />
+
+      <Separator className="my-8" />
+
+      <div className="space-y-6">
+        <CashEntryForm />
+        <CashEntriesTable entries={cashEntries} />
+      </div>
 
       <ManageLancamentoDialog
         isOpen={isManageDialogOpen}

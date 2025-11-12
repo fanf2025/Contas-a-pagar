@@ -7,6 +7,7 @@ import {
   FormaPagamento,
   FinancialGoal,
   GoalContribution,
+  CashEntry,
 } from '@/types'
 
 const initialCategorias: Categoria[] = [
@@ -148,12 +149,28 @@ const initialFinancialGoals: FinancialGoal[] = [
   },
 ]
 
+const initialCashEntries: CashEntry[] = [
+  {
+    id: 'cash1',
+    date: '2025-07-15',
+    value: 500,
+    origin: 'Aporte do sócio',
+  },
+  {
+    id: 'cash2',
+    date: '2025-07-20',
+    value: 120.5,
+    origin: 'Venda de produto X',
+  },
+]
+
 interface AppState {
   lancamentos: Lancamento[]
   categorias: Categoria[]
   fornecedores: Fornecedor[]
   formasPagamento: FormaPagamento[]
   financialGoals: FinancialGoal[]
+  cashEntries: CashEntry[]
   addLancamento: (lancamento: Omit<Lancamento, 'id'>) => void
   addMultipleLancamentos: (lancamentos: Omit<Lancamento, 'id'>[]) => void
   updateLancamento: (lancamento: Lancamento) => void
@@ -171,6 +188,7 @@ interface AppState {
   updateFinancialGoal: (goal: Omit<FinancialGoal, 'contributions'>) => void
   deleteFinancialGoal: (id: string) => void
   addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => void
+  addCashEntry: (entry: Omit<CashEntry, 'id'>) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -181,6 +199,7 @@ export const useAppStore = create<AppState>()(
       fornecedores: initialFornecedores,
       formasPagamento: initialFormasPagamento,
       financialGoals: initialFinancialGoals,
+      cashEntries: initialCashEntries,
 
       addLancamento: (lancamento) =>
         set((state) => ({
@@ -294,6 +313,13 @@ export const useAppStore = create<AppState>()(
                 }
               : g,
           ),
+        })),
+      addCashEntry: (entry) =>
+        set((state) => ({
+          cashEntries: [
+            ...state.cashEntries,
+            { ...entry, id: new Date().toISOString() + Math.random() },
+          ],
         })),
     }),
     {

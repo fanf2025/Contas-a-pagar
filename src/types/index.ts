@@ -45,3 +45,10 @@ export type FinancialGoal = {
   targetDate: string
   contributions: GoalContribution[]
 }
+
+export type CashEntry = {
+  id: string
+  date: string
+  value: number
+  origin: string
+}
