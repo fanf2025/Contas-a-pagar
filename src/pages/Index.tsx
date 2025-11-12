@@ -77,10 +77,7 @@ const Dashboard = () => {
     .filter((l) => !l.dataPagamento)
     .reduce((acc, l) => acc + l.valor, 0)
   const totalLancamentosCaixa = cashEntries.reduce((acc, e) => acc + e.value, 0)
-  const totalPagoGeral = lancamentos
-    .filter((l) => l.dataPagamento)
-    .reduce((acc, l) => acc + l.valorPago, 0)
-  const saldoTotalCaixa = totalLancamentosCaixa - totalPagoGeral
+  const saldo = totalLancamentosCaixa - totalContasAPagar
   const recentCashEntries = cashEntries
     .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())
     .slice(0, 5)
@@ -170,8 +167,8 @@ const Dashboard = () => {
           colorClass="text-success"
         />
         <KpiCard
-          title="Caixa (Saldo Total)"
-          value={saldoTotalCaixa}
+          title="Saldo"
+          value={saldo}
           icon={<Wallet />}
           colorClass="text-primary"
         />
