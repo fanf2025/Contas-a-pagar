@@ -4,6 +4,10 @@ import { AppHeader } from '@/components/AppHeader'
 import { NotificationHandler } from './NotificationHandler'
 
 const getPageTitle = (pathname: string): string => {
+  if (pathname.startsWith('/lancamentos/caixa/')) {
+    return 'Detalhe do Lançamento de Caixa'
+  }
+
   switch (pathname) {
     case '/':
       return 'Dashboard'
@@ -17,6 +21,8 @@ const getPageTitle = (pathname: string): string => {
       return 'Relatórios'
     case '/configuracoes':
       return 'Configurações'
+    case '/perfil':
+      return 'Meu Perfil'
     default:
       return 'Contas a Pagar'
   }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAppStore } from '@/data/store'
 import {
   Select,
@@ -8,14 +8,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { KpiCard } from '@/components/KpiCard'
-import {
-  ArrowDown,
-  CheckCircle,
-  Upload,
-  Landmark,
-  Wallet,
-  ArrowUp,
-} from 'lucide-react'
+import { ArrowDown, CheckCircle, Upload, Wallet, ArrowUp } from 'lucide-react'
 import { ExpensesByCategoryChart } from '@/components/charts/ExpensesByCategoryChart'
 import { ExpensesBySupplierChart } from '@/components/charts/ExpensesBySupplierChart'
 import {
@@ -36,7 +29,10 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useSettingsStore } from '@/stores/useSettingsStore'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, getYear, getMonth } from 'date-fns'
+import { DueDateAlerts } from '@/components/DueDateAlerts'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { useNavigate } from 'react-router-dom'
 
 const meses = [
   'Janeiro',
@@ -55,8 +51,12 @@ const meses = [
 const anos = [2024, 2025, 2026]
 
 const Dashboard = () => {
+  const navigate = useNavigate()
   const [mes, setMes] = useState(meses[new Date().getMonth()])
   const [ano, setAno] = useState(new Date().getFullYear())
+  const [periodFilter, setPeriodFilter] = useState<'monthly' | 'yearly'>(
+    'monthly',
+  )
   const { lancamentos, cashEntries } = useAppStore()
   const { newTransactionImportsEnabled } = useSettingsStore()
 
@@ -72,69 +72,102 @@ const Dashboard = () => {
     }
   }
 
-  // Overall calculations
-  const totalContasAPagar = lancamentos
-    .filter((l) => !l.dataPagamento)
-    .reduce((acc, l) => acc + l.valor, 0)
-  const totalLancamentosCaixa = cashEntries.reduce((acc, e) => acc + e.value, 0)
-  const saldo = totalLancamentosCaixa - totalContasAPagar
+  const { totalContasAPagar, totalLancamentosCaixa, saldo } = useMemo(() => {
+    const filteredPayables = lancamentos.filter((l) => {
+      const dueDate = parseISO(l.dataVencimento)
+      const matchesYear = getYear(dueDate) === ano
+      const matchesMonth = meses[getMonth(dueDate)] === mes
+      return (
+        !l.dataPagamento &&
+        (periodFilter === 'yearly' ? matchesYear : matchesYear && matchesMonth)
+      )
+    })
+
+    const filteredCash = cashEntries.filter((e) => {
+      const entryDate = parseISO(e.date)
+      const matchesYear = getYear(entryDate) === ano
+      const matchesMonth = meses[getMonth(entryDate)] === mes
+      return periodFilter === 'yearly'
+        ? matchesYear
+        : matchesYear && matchesMonth
+    })
+
+    const totalContasAPagar = filteredPayables.reduce(
+      (acc, l) => acc + l.valor,
+      0,
+    )
+    const totalLancamentosCaixa = filteredCash.reduce(
+      (acc, e) => acc + e.value,
+      0,
+    )
+    const saldo = totalLancamentosCaixa - totalContasAPagar
+    return { totalContasAPagar, totalLancamentosCaixa, saldo }
+  }, [lancamentos, cashEntries, ano, mes, periodFilter])
+
+  const filteredLancamentos = lancamentos.filter(
+    (l) => l.mes === mes && l.ano === ano,
+  )
+  const totalPago = filteredLancamentos.reduce((acc, l) => acc + l.valorPago, 0)
+
+  const despesasPorCategoriaData = Object.entries(
+    filteredLancamentos.reduce(
+      (acc, l) => {
+        acc[l.categoria] = (acc[l.categoria] || 0) + l.valor
+        return acc
+      },
+      {} as Record<string, number>,
+    ),
+  )
+    .map(([categoria, total]) => ({ categoria, total }))
+    .sort((a, b) => b.total - a.total)
+
+  const despesasPorFornecedorData = Object.entries(
+    filteredLancamentos.reduce(
+      (acc, l) => {
+        if (l.fornecedor !== 'N/A') {
+          acc[l.fornecedor] = (acc[l.fornecedor] || 0) + l.valor
+        }
+        return acc
+      },
+      {} as Record<string, number>,
+    ),
+  )
+    .map(([fornecedor, total]) => ({ fornecedor, total }))
+    .sort((a, b) => b.total - a.total)
+
   const recentCashEntries = cashEntries
     .sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())
     .slice(0, 5)
 
-  // Filtered calculations for the selected period
-  const filteredLancamentos = lancamentos.filter(
-    (l) => l.mes === mes && l.ano === ano,
-  )
-  const totalDespesas = filteredLancamentos.reduce((acc, l) => acc + l.valor, 0)
-  const totalPago = filteredLancamentos.reduce((acc, l) => acc + l.valorPago, 0)
-
-  const despesasPorCategoria = filteredLancamentos.reduce(
-    (acc, l) => {
-      if (!acc[l.categoria]) {
-        acc[l.categoria] = 0
-      }
-      acc[l.categoria] += l.valor
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-  const despesasPorCategoriaData = Object.entries(despesasPorCategoria)
-    .map(([categoria, total]) => ({ categoria, total }))
-    .sort((a, b) => b.total - a.total)
-
-  const despesasPorFornecedor = filteredLancamentos.reduce(
-    (acc, l) => {
-      if (l.fornecedor !== 'N/A') {
-        if (!acc[l.fornecedor]) {
-          acc[l.fornecedor] = 0
-        }
-        acc[l.fornecedor] += l.valor
-      }
-      return acc
-    },
-    {} as Record<string, number>,
-  )
-  const despesasPorFornecedorData = Object.entries(despesasPorFornecedor)
-    .map(([fornecedor, total]) => ({ fornecedor, total }))
-    .sort((a, b) => b.total - a.total)
-
   return (
     <div className="page-content space-y-6">
+      <DueDateAlerts />
       <div className="flex justify-between items-center">
-        <div className="flex gap-4">
-          <Select value={mes} onValueChange={setMes}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Mês" />
-            </SelectTrigger>
-            <SelectContent>
-              {meses.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {m}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex gap-4 items-center">
+          <ToggleGroup
+            type="single"
+            value={periodFilter}
+            onValueChange={(value) =>
+              value && setPeriodFilter(value as 'monthly' | 'yearly')
+            }
+          >
+            <ToggleGroupItem value="monthly">Mensal</ToggleGroupItem>
+            <ToggleGroupItem value="yearly">Anual</ToggleGroupItem>
+          </ToggleGroup>
+          {periodFilter === 'monthly' && (
+            <Select value={mes} onValueChange={setMes}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {meses.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={String(ano)} onValueChange={(v) => setAno(Number(v))}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Ano" />
@@ -170,19 +203,13 @@ const Dashboard = () => {
           title="Saldo"
           value={saldo}
           icon={<Wallet />}
-          colorClass="text-primary"
+          colorClass={saldo >= 0 ? 'text-primary' : 'text-destructive'}
         />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-1">
         <KpiCard
-          title={`Total em Despesas (${mes})`}
-          value={totalDespesas}
-          icon={<Landmark />}
-          colorClass="text-destructive"
-        />
-        <KpiCard
-          title={`Total Pago (${mes})`}
+          title={`Total Pago (${mes} de ${ano})`}
           value={totalPago}
           icon={<CheckCircle />}
           colorClass="text-success"
@@ -213,7 +240,11 @@ const Dashboard = () => {
             <TableBody>
               {recentCashEntries.length > 0 ? (
                 recentCashEntries.map((entry) => (
-                  <TableRow key={entry.id}>
+                  <TableRow
+                    key={entry.id}
+                    className="cursor-pointer hover:bg-muted"
+                    onClick={() => navigate(`/lancamentos/caixa/${entry.id}`)}
+                  >
                     <TableCell>
                       {format(parseISO(entry.date), 'dd/MM/yyyy')}
                     </TableCell>

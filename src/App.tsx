@@ -15,6 +15,9 @@ import RegisterPage from './pages/Register'
 import ForgotPasswordPage from './pages/ForgotPassword'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import MetasPage from './pages/Metas'
+import ProfilePage from './pages/Profile'
+import ResetPasswordPage from './pages/ResetPassword'
+import CashEntryDetailPage from './pages/CashEntryDetail'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
@@ -28,15 +31,21 @@ const App = () => (
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/lancamentos" element={<Lancamentos />} />
+            <Route
+              path="/lancamentos/caixa/:id"
+              element={<CashEntryDetailPage />}
+            />
             <Route path="/baixas" element={<Baixas />} />
             <Route path="/metas" element={<MetasPage />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/perfil" element={<ProfilePage />} />
           </Route>
         </Route>
 

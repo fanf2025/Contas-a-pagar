@@ -1,4 +1,10 @@
-import { Menu, DollarSign, LogOut, Target } from 'lucide-react'
+import {
+  Menu,
+  DollarSign,
+  LogOut,
+  Target,
+  User as UserIcon,
+} from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { NavLink, useNavigate } from 'react-router-dom'
@@ -115,6 +121,11 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
                 </p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate('/perfil')}>
+              <UserIcon className="mr-2 h-4 w-4" />
+              <span>Perfil</span>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />

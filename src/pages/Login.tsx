@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle, DollarSign, Loader2 } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Por favor, insira um email válido.' }),
@@ -33,16 +34,14 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const login = useAuthStore((state) => state.login)
+  const { login, socialLogin } = useAuthStore()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSocialLoading, setIsSocialLoading] = useState(false)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: '', password: '' },
   })
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -52,14 +51,25 @@ const LoginPage = () => {
       await login(data.email, data.password)
       navigate('/')
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('Ocorreu um erro inesperado.')
-      }
+      if (err instanceof Error) setError(err.message)
+      else setError('Ocorreu um erro inesperado.')
       form.setValue('password', '')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleSocialLogin = async () => {
+    setIsSocialLoading(true)
+    setError(null)
+    try {
+      await socialLogin()
+      navigate('/')
+    } catch (err) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Ocorreu um erro inesperado.')
+    } finally {
+      setIsSocialLoading(false)
     }
   }
 
@@ -95,7 +105,7 @@ const LoginPage = () => {
                       <Input
                         placeholder="seu@email.com"
                         {...field}
-                        disabled={isLoading}
+                        disabled={isLoading || isSocialLoading}
                       />
                     </FormControl>
                     <FormMessage />
@@ -121,19 +131,65 @@ const LoginPage = () => {
                         type="password"
                         placeholder="********"
                         {...field}
-                        disabled={isLoading}
+                        disabled={isLoading || isSocialLoading}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isLoading || isSocialLoading}
+              >
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Entrar
               </Button>
             </form>
           </Form>
+          <div className="relative my-4">
+            <Separator />
+            <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-card px-2 text-xs text-muted-foreground">
+              OU
+            </span>
+          </div>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleSocialLogin}
+              disabled={isLoading || isSocialLoading}
+            >
+              {isSocialLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <img
+                  src="https://img.usecurling.com/i?q=google&color=multicolor"
+                  alt="Google"
+                  className="mr-2 h-4 w-4"
+                />
+              )}
+              Entrar com Google
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleSocialLogin}
+              disabled={isLoading || isSocialLoading}
+            >
+              {isSocialLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <img
+                  src="https://img.usecurling.com/i?q=facebook&color=multicolor"
+                  alt="Facebook"
+                  className="mr-2 h-4 w-4"
+                />
+              )}
+              Entrar com Facebook
+            </Button>
+          </div>
           <div className="mt-4 text-center text-sm">
             Não tem uma conta?{' '}
             <Link to="/register" className="text-primary hover:underline">
