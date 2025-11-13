@@ -28,8 +28,8 @@ export const usePublishStore = create<PublishState>()(
   persist(
     (set, get) => ({
       domain: 'www.contasnovaformula.com.br',
-      status: 'pending',
-      sslStatus: 'idle',
+      status: 'active',
+      sslStatus: 'active',
       dnsError: null,
       requiredDnsRecord: {
         type: 'CNAME',
