@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -17,7 +17,6 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Progress } from './ui/progress'
 import { toast } from 'sonner'
-import { Link } from 'react-router-dom'
 
 type DeploymentType = 'web' | 'ios' | 'android' | null
 type DeploymentStatus = 'idle' | 'building' | 'deploying' | 'success' | 'failed'
@@ -25,8 +24,11 @@ type DeploymentStatus = 'idle' | 'building' | 'deploying' | 'success' | 'failed'
 const webConfigSchema = z.object({
   domain: z
     .string()
-    .min(3, 'O domínio é obrigatório.')
-    .url('URL de domínio inválida.'),
+    .min(1, 'O domínio é obrigatório.')
+    .regex(
+      /^(?!-)[A-Za-z0-9-]+([-.]{1}[a-z0-9]+)*\.[A-Za-z]{2,6}$/,
+      'Formato de domínio inválido.',
+    ),
 })
 type WebConfigValues = z.infer<typeof webConfigSchema>
 
@@ -55,7 +57,7 @@ export const PublishWizard = () => {
   const handleBack = () => setCurrentStep((prev) => prev - 1)
 
   const startDeployment = async (data: WebConfigValues) => {
-    setDeploymentUrl(data.domain)
+    setDeploymentUrl(`https://${data.domain}`)
     setCurrentStep(4)
     setDeploymentStatus('building')
     setProgress(0)
@@ -68,12 +70,14 @@ export const PublishWizard = () => {
       'Build concluído com sucesso.',
       'Iniciando publicação no servidor...',
       'Configurando DNS...',
+      'Provisionando certificado SSL...',
       'Verificando certificado SSL...',
+      'Redirecionando HTTP para HTTPS...',
       'Publicação concluída!',
     ]
 
     for (let i = 0; i < logs.length; i++) {
-      await new Promise((res) => setTimeout(res, 1000 + Math.random() * 1000))
+      await new Promise((res) => setTimeout(res, 800 + Math.random() * 800))
       setDeploymentLogs((prev) => [...prev, logs[i]])
       setProgress(((i + 1) / logs.length) * 100)
       if (i > 3) setDeploymentStatus('deploying')
@@ -81,6 +85,7 @@ export const PublishWizard = () => {
 
     setDeploymentStatus('success')
     toast.success('Aplicação publicada com sucesso!')
+    setCurrentStep(5)
   }
 
   const renderStepContent = () => {
@@ -147,7 +152,7 @@ export const PublishWizard = () => {
                 <Label htmlFor="domain">Domínio</Label>
                 <Input
                   id="domain"
-                  placeholder="https://meuapp.com"
+                  placeholder="www.meuapp.com"
                   {...webForm.register('domain')}
                 />
                 {webForm.formState.errors.domain && (
@@ -155,6 +160,10 @@ export const PublishWizard = () => {
                     {webForm.formState.errors.domain.message}
                   </p>
                 )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  Um certificado SSL será provisionado automaticamente para
+                  garantir uma conexão segura (HTTPS).
+                </p>
               </div>
               <Button type="submit" className="w-full">
                 Iniciar Publicação
@@ -224,7 +233,7 @@ export const PublishWizard = () => {
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={currentStep === 1 || currentStep === 4}
+          disabled={currentStep === 1 || currentStep === 4 || currentStep === 5}
         >
           Voltar
         </Button>

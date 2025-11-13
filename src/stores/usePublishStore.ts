@@ -2,10 +2,12 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 type DomainStatus = 'idle' | 'pending' | 'active' | 'error'
+type SslStatus = 'idle' | 'provisioning' | 'active' | 'error'
 
 interface PublishState {
   domain: string | null
   status: DomainStatus
+  sslStatus: SslStatus
   setDomain: (domain: string) => void
   verifyDomain: () => Promise<void>
   removeDomain: () => void
@@ -13,29 +15,39 @@ interface PublishState {
 
 export const usePublishStore = create<PublishState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       domain: null,
       status: 'idle',
+      sslStatus: 'idle',
       setDomain: (domain: string) => {
-        set({ domain, status: 'pending' })
+        set({ domain, status: 'pending', sslStatus: 'idle' })
       },
       verifyDomain: async () => {
         return new Promise((resolve) => {
-          set({ status: 'pending' }) // Show pending state during verification
+          set({ status: 'pending', sslStatus: 'idle' })
           setTimeout(() => {
-            // Simulate a 50/50 chance of success or failure for demonstration
-            const isSuccess = Math.random() > 0.5
-            if (isSuccess) {
-              set({ status: 'active' })
+            const isDomainSuccess = Math.random() > 0.2
+            if (isDomainSuccess) {
+              set({ status: 'active', sslStatus: 'provisioning' })
+
+              setTimeout(() => {
+                const isSslSuccess = Math.random() > 0.2
+                if (isSslSuccess) {
+                  set({ sslStatus: 'active' })
+                } else {
+                  set({ sslStatus: 'error' })
+                }
+                resolve()
+              }, 3000)
             } else {
-              set({ status: 'error' })
+              set({ status: 'error', sslStatus: 'idle' })
+              resolve()
             }
-            resolve()
           }, 2500)
         })
       },
       removeDomain: () => {
-        set({ domain: null, status: 'idle' })
+        set({ domain: null, status: 'idle', sslStatus: 'idle' })
       },
     }),
     {

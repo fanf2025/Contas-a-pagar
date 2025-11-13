@@ -17,11 +17,11 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Loader2,
-  Info,
   CheckCircle,
   AlertCircle,
   Trash2,
   Copy,
+  Lock,
 } from 'lucide-react'
 import { Badge } from './ui/badge'
 import { toast } from 'sonner'
@@ -48,8 +48,9 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
   return (
     <div className="space-y-4 mt-4">
       <p>
-        Para conectar seu domínio, adicione o seguinte registro CNAME nas
-        configurações de DNS do seu provedor de domínio:
+        Para conectar seu domínio e ativar o SSL, adicione o seguinte registro
+        CNAME nas configurações de DNS do seu provedor. O HTTPS será ativado
+        automaticamente.
       </p>
       <div className="bg-muted p-4 rounded-md font-mono text-sm space-y-2">
         <div className="flex justify-between items-center">
@@ -100,7 +101,7 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
 }
 
 export const CustomDomainManager = () => {
-  const { domain, status, setDomain, verifyDomain, removeDomain } =
+  const { domain, status, sslStatus, setDomain, verifyDomain, removeDomain } =
     usePublishStore()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -127,6 +128,38 @@ export const CustomDomainManager = () => {
         return <Badge className="bg-success text-white">Ativo</Badge>
       case 'error':
         return <Badge variant="destructive">Erro</Badge>
+      default:
+        return null
+    }
+  }
+
+  const renderSslStatus = () => {
+    if (status !== 'active') return null
+
+    switch (sslStatus) {
+      case 'provisioning':
+        return (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Provisionando certificado SSL...</span>
+          </div>
+        )
+      case 'active':
+        return (
+          <div className="flex items-center gap-2 text-sm text-success mt-2">
+            <Lock className="h-4 w-4" />
+            <span>Certificado SSL ativo. Sua aplicação está segura.</span>
+          </div>
+        )
+      case 'error':
+        return (
+          <div className="flex items-center gap-2 text-sm text-destructive mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <span>
+              Falha ao provisionar certificado SSL. Tente verificar novamente.
+            </span>
+          </div>
+        )
       default:
         return null
     }
@@ -181,15 +214,18 @@ export const CustomDomainManager = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between border rounded-md p-4">
-          <span className="font-semibold">{domain}</span>
-          {renderStatusBadge()}
+        <div className="border rounded-md p-4">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">{domain}</span>
+            {renderStatusBadge()}
+          </div>
+          {renderSslStatus()}
         </div>
 
         {status === 'error' && (
           <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Falha na Verificação</AlertTitle>
+            <AlertTitle>Falha na Verificação do Domínio</AlertTitle>
             <AlertDescription>
               Não foi possível verificar seu domínio. Por favor, verifique as
               configurações de DNS e tente novamente.
@@ -197,24 +233,38 @@ export const CustomDomainManager = () => {
           </Alert>
         )}
 
-        {status === 'active' && (
+        {status === 'active' && sslStatus === 'active' && (
           <Alert
             variant="default"
             className="mt-4 bg-success/10 border-success/50"
           >
             <CheckCircle className="h-4 w-4 text-success" />
-            <AlertTitle className="text-success">Domínio Conectado</AlertTitle>
+            <AlertTitle className="text-success">
+              Domínio Conectado e Seguro
+            </AlertTitle>
             <AlertDescription>
-              Sua aplicação está ativa e acessível em {domain}.
+              Sua aplicação está ativa e segura em{' '}
+              <a
+                href={`https://${domain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium underline"
+              >
+                https://{domain}
+              </a>
+              .
             </AlertDescription>
           </Alert>
         )}
 
-        {(status === 'pending' || status === 'error') && domain && (
-          <DnsInstructions domain={domain} />
-        )}
+        {(status === 'pending' ||
+          (status === 'active' && sslStatus !== 'active') ||
+          status === 'error') &&
+          domain && <DnsInstructions domain={domain} />}
       </CardContent>
-      {(status === 'pending' || status === 'error') && (
+      {(status === 'pending' ||
+        (status === 'active' && sslStatus !== 'active') ||
+        status === 'error') && (
         <CardFooter>
           <Button onClick={handleVerify} disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
