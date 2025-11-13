@@ -1,3 +1,5 @@
+'use client'
+
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 
@@ -17,75 +19,9 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
-export type ComboboxOption = {
+type ComboboxOption = {
   value: string
   label: string
-}
-
-type ComboboxProps = {
-  options: ComboboxOption[]
-  value?: string
-  onChange: (value: string) => void
-  placeholder?: string
-  searchPlaceholder?: string
-  emptyPlaceholder?: string
-}
-
-export function Combobox({
-  options,
-  value,
-  onChange,
-  placeholder = 'Select an option...',
-  searchPlaceholder = 'Search...',
-  emptyPlaceholder = 'No options found.',
-}: ComboboxProps) {
-  const [open, setOpen] = React.useState(false)
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between"
-        >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
-            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    onChange(option.value === value ? '' : option.value)
-                    setOpen(false)
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      value === option.value ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                  {option.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
 }
 
 type MultiSelectComboboxProps = {
@@ -93,24 +29,30 @@ type MultiSelectComboboxProps = {
   value: string[]
   onChange: (value: string[]) => void
   placeholder?: string
-  searchPlaceholder?: string
-  emptyPlaceholder?: string
+  className?: string
 }
 
-export function MultiSelectCombobox({
+export const MultiSelectCombobox = ({
   options,
   value,
   onChange,
   placeholder = 'Select options...',
-  searchPlaceholder = 'Search...',
-  emptyPlaceholder = 'No options found.',
-}: MultiSelectComboboxProps) {
+  className,
+}: MultiSelectComboboxProps) => {
   const [open, setOpen] = React.useState(false)
 
-  const selectedLabels = options
-    .filter((option) => value.includes(option.value))
-    .map((option) => option.label)
-    .join(', ')
+  const handleSelect = (currentValue: string) => {
+    const newValue = value.includes(currentValue)
+      ? value.filter((v) => v !== currentValue)
+      : [...value, currentValue]
+    onChange(newValue)
+  }
+
+  const selectedLabels =
+    options
+      .filter((option) => value.includes(option.value))
+      .map((option) => option.label)
+      .join(', ') || placeholder
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -119,44 +61,35 @@ export function MultiSelectCombobox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between"
+          className={cn('w-full justify-between font-normal', className)}
         >
-          <span className="truncate">
-            {selectedLabels.length > 0 ? selectedLabels : placeholder}
-          </span>
+          <span className="truncate">{selectedLabels}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder={searchPlaceholder} />
+          <CommandInput placeholder="Procurar..." />
           <CommandList>
-            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+            <CommandEmpty>Nenhuma opção encontrada.</CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
-                const isSelected = value.includes(option.value)
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={option.label}
-                    onSelect={() => {
-                      if (isSelected) {
-                        onChange(value.filter((v) => v !== option.value))
-                      } else {
-                        onChange([...value, option.value])
-                      }
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        isSelected ? 'opacity-100' : 'opacity-0',
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                )
-              })}
+              {options.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      value.includes(option.value)
+                        ? 'opacity-100'
+                        : 'opacity-0',
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
             </CommandGroup>
           </CommandList>
         </Command>

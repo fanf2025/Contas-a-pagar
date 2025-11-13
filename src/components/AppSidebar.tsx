@@ -8,6 +8,7 @@ import {
   ChevronsRight,
   Receipt,
   Target,
+  UploadCloud,
 } from 'lucide-react'
 import { NavLink, Link } from 'react-router-dom'
 import { useState } from 'react'
@@ -20,6 +21,7 @@ const navItems = [
   { to: '/baixas', label: 'Baixas', icon: ArrowDownCircle },
   { to: '/metas', label: 'Metas', icon: Target },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
+  { to: '/publicar', label: 'Publicar', icon: UploadCloud },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 

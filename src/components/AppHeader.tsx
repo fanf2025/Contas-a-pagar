@@ -4,6 +4,7 @@ import {
   LogOut,
   Target,
   User as UserIcon,
+  UploadCloud,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,7 @@ const navItems = [
   { to: '/baixas', label: 'Baixas', icon: ArrowDownCircle },
   { to: '/metas', label: 'Metas', icon: Target },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
+  { to: '/publicar', label: 'Publicar', icon: UploadCloud },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 

@@ -18,6 +18,7 @@ import MetasPage from './pages/Metas'
 import ProfilePage from './pages/Profile'
 import ResetPasswordPage from './pages/ResetPassword'
 import CashEntryDetailPage from './pages/CashEntryDetail'
+import PublishPage from './pages/Publish'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/baixas" element={<Baixas />} />
             <Route path="/metas" element={<MetasPage />} />
             <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/publicar" element={<PublishPage />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             <Route path="/perfil" element={<ProfilePage />} />
           </Route>

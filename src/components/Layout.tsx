@@ -19,6 +19,8 @@ const getPageTitle = (pathname: string): string => {
       return 'Metas Financeiras'
     case '/relatorios':
       return 'Relatórios'
+    case '/publicar':
+      return 'Publicar Aplicação'
     case '/configuracoes':
       return 'Configurações'
     case '/perfil':
