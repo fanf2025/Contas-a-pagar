@@ -38,8 +38,9 @@ const domainSchema = z.object({
 
 type DomainFormValues = z.infer<typeof domainSchema>
 
-const DnsInstructions = ({ domain }: { domain: string }) => {
-  const appUrl = 'publish.contasapagar.app'
+const DnsInstructions = () => {
+  const { requiredDnsRecord } = usePublishStore()
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
     toast.success('Copiado para a área de transferência!')
@@ -56,12 +57,12 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
         <div className="flex justify-between items-center">
           <div>
             <span className="text-muted-foreground">Tipo: </span>
-            <span>CNAME</span>
+            <span>{requiredDnsRecord.type}</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => copyToClipboard('CNAME')}
+            onClick={() => copyToClipboard(requiredDnsRecord.type)}
           >
             <Copy className="h-4 w-4" />
           </Button>
@@ -69,12 +70,12 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
         <div className="flex justify-between items-center">
           <div>
             <span className="text-muted-foreground">Host/Nome: </span>
-            <span>www</span>
+            <span>{requiredDnsRecord.host}</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => copyToClipboard('www')}
+            onClick={() => copyToClipboard(requiredDnsRecord.host)}
           >
             <Copy className="h-4 w-4" />
           </Button>
@@ -82,12 +83,12 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
         <div className="flex justify-between items-center">
           <div>
             <span className="text-muted-foreground">Valor/Destino: </span>
-            <span>{appUrl}</span>
+            <span>{requiredDnsRecord.value}</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => copyToClipboard(appUrl)}
+            onClick={() => copyToClipboard(requiredDnsRecord.value)}
           >
             <Copy className="h-4 w-4" />
           </Button>
@@ -101,8 +102,15 @@ const DnsInstructions = ({ domain }: { domain: string }) => {
 }
 
 export const CustomDomainManager = () => {
-  const { domain, status, sslStatus, setDomain, verifyDomain, removeDomain } =
-    usePublishStore()
+  const {
+    domain,
+    status,
+    sslStatus,
+    dnsError,
+    setDomain,
+    verifyDomain,
+    removeDomain,
+  } = usePublishStore()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<DomainFormValues>({
@@ -165,14 +173,14 @@ export const CustomDomainManager = () => {
     }
   }
 
-  if (status === 'idle') {
+  if (status === 'idle' || !domain) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Conectar Domínio Personalizado</CardTitle>
           <CardDescription>
             Use seu próprio domínio para sua aplicação.
-          </CardDescription>
+          </-CardDescription>
         </CardHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
@@ -222,14 +230,15 @@ export const CustomDomainManager = () => {
           {renderSslStatus()}
         </div>
 
-        {status === 'error' && (
+        {status === 'error' && dnsError && (
           <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Falha na Verificação do Domínio</AlertTitle>
-            <AlertDescription>
-              Não foi possível verificar seu domínio. Por favor, verifique as
-              configurações de DNS e tente novamente.
-            </AlertDescription>
+            <AlertTitle>
+              {dnsError.type === 'DNS_PROBE_FINISHED_NXDOMAIN'
+                ? 'Erro de Resolução DNS'
+                : 'Falha na Verificação do Domínio'}
+            </AlertTitle>
+            <AlertDescription>{dnsError.message}</AlertDescription>
           </Alert>
         )}
 
@@ -257,14 +266,9 @@ export const CustomDomainManager = () => {
           </Alert>
         )}
 
-        {(status === 'pending' ||
-          (status === 'active' && sslStatus !== 'active') ||
-          status === 'error') &&
-          domain && <DnsInstructions domain={domain} />}
+        {(status === 'pending' || status === 'error') && <DnsInstructions />}
       </CardContent>
-      {(status === 'pending' ||
-        (status === 'active' && sslStatus !== 'active') ||
-        status === 'error') && (
+      {(status === 'pending' || status === 'error') && (
         <CardFooter>
           <Button onClick={handleVerify} disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
