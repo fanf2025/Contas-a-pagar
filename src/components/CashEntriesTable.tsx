@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react'
+import { useAppStore } from '@/data/store'
 
 type CashEntriesTableProps = {
   entries: CashEntry[]
@@ -35,6 +36,12 @@ export const CashEntriesTable = ({
   onEdit,
   onDelete,
 }: CashEntriesTableProps) => {
+  const { cashCategories } = useAppStore()
+
+  const getCategoryName = (categoryId: string) => {
+    return cashCategories.find((c) => c.id === categoryId)?.nome || 'N/A'
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -50,6 +57,7 @@ export const CashEntriesTable = ({
               <TableRow>
                 <TableHead>Data</TableHead>
                 <TableHead>Origem</TableHead>
+                <TableHead>Categoria</TableHead>
                 <TableHead className="text-right">Valor</TableHead>
                 <TableHead className="w-[80px] text-right">Ações</TableHead>
               </TableRow>
@@ -64,6 +72,7 @@ export const CashEntriesTable = ({
                     <TableCell className="font-medium">
                       {entry.origin}
                     </TableCell>
+                    <TableCell>{getCategoryName(entry.categoryId)}</TableCell>
                     <TableCell className="text-right">
                       {entry.value.toLocaleString('pt-BR', {
                         style: 'currency',
@@ -94,7 +103,7 @@ export const CashEntriesTable = ({
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     Nenhum lançamento de caixa encontrado.
                   </TableCell>
                 </TableRow>

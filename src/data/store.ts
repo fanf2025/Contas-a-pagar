@@ -8,6 +8,7 @@ import {
   FinancialGoal,
   GoalContribution,
   CashEntry,
+  CashCategory,
 } from '@/types'
 
 const initialCategorias: Categoria[] = [
@@ -149,18 +150,27 @@ const initialFinancialGoals: FinancialGoal[] = [
   },
 ]
 
+const initialCashCategories: CashCategory[] = [
+  { id: 'c1', nome: 'Aporte de Sócio' },
+  { id: 'c2', nome: 'Vendas' },
+  { id: 'c3', nome: 'Rendimentos de Aplicações' },
+  { id: 'c4', nome: 'Outras Receitas' },
+]
+
 const initialCashEntries: CashEntry[] = [
   {
     id: 'cash1',
     date: '2025-07-15',
     value: 500,
     origin: 'Aporte do sócio',
+    categoryId: 'c1',
   },
   {
     id: 'cash2',
     date: '2025-07-20',
     value: 120.5,
     origin: 'Venda de produto X',
+    categoryId: 'c2',
   },
 ]
 
@@ -170,6 +180,7 @@ interface AppState {
   fornecedores: Fornecedor[]
   formasPagamento: FormaPagamento[]
   financialGoals: FinancialGoal[]
+  cashCategories: CashCategory[]
   cashEntries: CashEntry[]
   addLancamento: (lancamento: Omit<Lancamento, 'id'>) => void
   addMultipleLancamentos: (lancamentos: Omit<Lancamento, 'id'>[]) => void
@@ -188,6 +199,9 @@ interface AppState {
   updateFinancialGoal: (goal: Omit<FinancialGoal, 'contributions'>) => void
   deleteFinancialGoal: (id: string) => void
   addGoalContribution: (contribution: Omit<GoalContribution, 'id'>) => void
+  addCashCategory: (nome: string) => void
+  updateCashCategory: (category: CashCategory) => void
+  deleteCashCategory: (id: string) => void
   addCashEntry: (entry: Omit<CashEntry, 'id'>) => void
   updateCashEntry: (entry: CashEntry) => void
   deleteCashEntry: (id: string) => void
@@ -201,6 +215,7 @@ export const useAppStore = create<AppState>()(
       fornecedores: initialFornecedores,
       formasPagamento: initialFormasPagamento,
       financialGoals: initialFinancialGoals,
+      cashCategories: initialCashCategories,
       cashEntries: initialCashEntries,
 
       addLancamento: (lancamento) =>
@@ -315,6 +330,23 @@ export const useAppStore = create<AppState>()(
                 }
               : g,
           ),
+        })),
+      addCashCategory: (nome) =>
+        set((state) => ({
+          cashCategories: [
+            ...state.cashCategories,
+            { nome, id: `cc_${new Date().getTime()}` },
+          ],
+        })),
+      updateCashCategory: (category) =>
+        set((state) => ({
+          cashCategories: state.cashCategories.map((c) =>
+            c.id === category.id ? category : c,
+          ),
+        })),
+      deleteCashCategory: (id) =>
+        set((state) => ({
+          cashCategories: state.cashCategories.filter((c) => c.id !== id),
         })),
       addCashEntry: (entry) =>
         set((state) => ({

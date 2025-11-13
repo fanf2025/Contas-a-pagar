@@ -1,5 +1,3 @@
-'use client'
-
 import * as React from 'react'
 import { Check, ChevronsUpDown } from 'lucide-react'
 
@@ -19,25 +17,28 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 
+export type ComboboxOption = {
+  value: string
+  label: string
+}
+
 type ComboboxProps = {
-  options: { value: string; label: string }[]
+  options: ComboboxOption[]
   value?: string
   onChange: (value: string) => void
   placeholder?: string
   searchPlaceholder?: string
-  emptyMessage?: string
-  className?: string
+  emptyPlaceholder?: string
 }
 
-export const Combobox = ({
+export function Combobox({
   options,
   value,
   onChange,
   placeholder = 'Select an option...',
   searchPlaceholder = 'Search...',
-  emptyMessage = 'No options found.',
-  className,
-}: ComboboxProps) => {
+  emptyPlaceholder = 'No options found.',
+}: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -47,7 +48,7 @@ export const Combobox = ({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-full justify-between font-normal', className)}
+          className="w-full justify-between"
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -59,7 +60,7 @@ export const Combobox = ({
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
           <CommandList>
-            <CommandEmpty>{emptyMessage}</CommandEmpty>
+            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem
@@ -79,6 +80,83 @@ export const Combobox = ({
                   {option.label}
                 </CommandItem>
               ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+type MultiSelectComboboxProps = {
+  options: ComboboxOption[]
+  value: string[]
+  onChange: (value: string[]) => void
+  placeholder?: string
+  searchPlaceholder?: string
+  emptyPlaceholder?: string
+}
+
+export function MultiSelectCombobox({
+  options,
+  value,
+  onChange,
+  placeholder = 'Select options...',
+  searchPlaceholder = 'Search...',
+  emptyPlaceholder = 'No options found.',
+}: MultiSelectComboboxProps) {
+  const [open, setOpen] = React.useState(false)
+
+  const selectedLabels = options
+    .filter((option) => value.includes(option.value))
+    .map((option) => option.label)
+    .join(', ')
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+        >
+          <span className="truncate">
+            {selectedLabels.length > 0 ? selectedLabels : placeholder}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandList>
+            <CommandEmpty>{emptyPlaceholder}</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => {
+                const isSelected = value.includes(option.value)
+                return (
+                  <CommandItem
+                    key={option.value}
+                    value={option.label}
+                    onSelect={() => {
+                      if (isSelected) {
+                        onChange(value.filter((v) => v !== option.value))
+                      } else {
+                        onChange([...value, option.value])
+                      }
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        isSelected ? 'opacity-100' : 'opacity-0',
+                      )}
+                    />
+                    {option.label}
+                  </CommandItem>
+                )
+              })}
             </CommandGroup>
           </CommandList>
         </Command>

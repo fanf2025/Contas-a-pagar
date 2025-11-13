@@ -16,6 +16,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { CalendarIcon } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -24,11 +31,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { CashEntry } from '@/types'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/data/store'
 
 const cashEntrySchema = z.object({
   date: z.date({ required_error: 'A data é obrigatória.' }),
   value: z.coerce.number().positive('O valor deve ser maior que zero.'),
   origin: z.string().min(3, 'A origem é obrigatória.'),
+  categoryId: z.string({ required_error: 'A categoria é obrigatória.' }),
 })
 
 type CashEntryFormValues = z.infer<typeof cashEntrySchema>
@@ -46,6 +55,7 @@ export const ManageCashEntryDialog = ({
   onSave,
   entry,
 }: ManageCashEntryDialogProps) => {
+  const { cashCategories } = useAppStore()
   const {
     control,
     register,
@@ -62,6 +72,7 @@ export const ManageCashEntryDialog = ({
         date: parseISO(entry.date),
         value: entry.value,
         origin: entry.origin,
+        categoryId: entry.categoryId,
       })
     }
   }, [entry, isOpen, reset])
@@ -139,6 +150,35 @@ export const ManageCashEntryDialog = ({
             {errors.origin && (
               <p className="text-sm text-destructive">
                 {errors.origin.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <Label>Categoria</Label>
+            <Controller
+              name="categoryId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cashCategories.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.categoryId && (
+              <p className="text-sm text-destructive">
+                {errors.categoryId.message}
               </p>
             )}
           </div>

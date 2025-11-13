@@ -14,9 +14,12 @@ import { format, parseISO } from 'date-fns'
 const CashEntryDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { cashEntries } = useAppStore()
+  const { cashEntries, cashCategories } = useAppStore()
 
   const entry = cashEntries.find((e) => e.id === id)
+  const categoryName = entry
+    ? cashCategories.find((c) => c.id === entry.categoryId)?.nome
+    : 'N/A'
 
   if (!entry) {
     return (
@@ -62,6 +65,12 @@ const CashEntryDetailPage = () => {
               Origem
             </span>
             <span className="text-lg font-semibold">{entry.origin}</span>
+          </div>
+          <div className="flex flex-col space-y-1">
+            <span className="text-sm font-medium text-muted-foreground">
+              Categoria
+            </span>
+            <span className="text-lg">{categoryName}</span>
           </div>
           <div className="flex flex-col space-y-1">
             <span className="text-sm font-medium text-muted-foreground">

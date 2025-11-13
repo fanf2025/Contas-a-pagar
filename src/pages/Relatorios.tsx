@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -11,16 +11,49 @@ import { DateRange } from 'react-day-picker'
 import { format, parseISO } from 'date-fns'
 import { useAppStore } from '@/data/store'
 import { Card } from '@/components/ui/card'
-import { Lancamento } from '@/types'
-import { RelatorioLancamentosTable } from '@/components/RelatorioLancamentosTable'
-import { useExcelExport } from '@/hooks/useExcelExport'
 import { toast } from 'sonner'
+import { RelatorioTable } from '@/components/RelatorioTable'
+import { MultiSelectCombobox } from '@/components/ui/combobox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useExcelExport } from '@/hooks/useExcelExport'
+
+type ReportItem = {
+  id: string
+  date: string
+  description: string
+  category: string
+  type: 'Receita' | 'Despesa'
+  value: number
+}
 
 const RelatoriosPage = () => {
   const [date, setDate] = useState<DateRange | undefined>()
-  const [reportData, setReportData] = useState<Lancamento[] | null>(null)
-  const { lancamentos } = useAppStore()
+  const [reportData, setReportData] = useState<ReportItem[] | null>(null)
+  const [typeFilter, setTypeFilter] = useState<'all' | 'Receita' | 'Despesa'>(
+    'all',
+  )
+  const [categoryFilter, setCategoryFilter] = useState<string[]>([])
+
+  const { lancamentos, cashEntries, categorias, cashCategories } = useAppStore()
   const { exportToExcel } = useExcelExport()
+
+  const categoryOptions = useMemo(() => {
+    const despesaOptions = categorias.map((c) => ({
+      value: c.id,
+      label: `[D] ${c.nome}`,
+    }))
+    const receitaOptions = cashCategories.map((c) => ({
+      value: c.id,
+      label: `[R] ${c.nome}`,
+    }))
+    return [...despesaOptions, ...receitaOptions]
+  }, [categorias, cashCategories])
 
   const handleGenerateReport = () => {
     if (!date?.from || !date?.to) {
@@ -30,12 +63,56 @@ const RelatoriosPage = () => {
       return
     }
 
-    const filtered = lancamentos.filter((l) => {
-      const vencimentoDate = parseISO(l.dataVencimento)
-      return vencimentoDate >= date.from! && vencimentoDate <= date.to!
-    })
+    const despesas = lancamentos
+      .filter((l) => {
+        const vencimentoDate = parseISO(l.dataVencimento)
+        const matchesDate =
+          vencimentoDate >= date.from! && vencimentoDate <= date.to!
+        const matchesCategory =
+          categoryFilter.length === 0 ||
+          categoryFilter.includes(
+            categorias.find((c) => c.nome === l.categoria)?.id || '',
+          )
+        return matchesDate && matchesCategory
+      })
+      .map(
+        (l): ReportItem => ({
+          id: `d-${l.id}`,
+          date: l.dataVencimento,
+          description: l.descricao,
+          category: l.categoria,
+          type: 'Despesa',
+          value: l.valor,
+        }),
+      )
 
-    setReportData(filtered)
+    const receitas = cashEntries
+      .filter((e) => {
+        const entryDate = parseISO(e.date)
+        const matchesDate = entryDate >= date.from! && entryDate <= date.to!
+        const matchesCategory =
+          categoryFilter.length === 0 || categoryFilter.includes(e.categoryId)
+        return matchesDate && matchesCategory
+      })
+      .map(
+        (e): ReportItem => ({
+          id: `r-${e.id}`,
+          date: e.date,
+          description: e.origin,
+          category:
+            cashCategories.find((c) => c.id === e.categoryId)?.nome || 'N/A',
+          type: 'Receita',
+          value: e.value,
+        }),
+      )
+
+    let combinedData = [...despesas, ...receitas]
+
+    if (typeFilter !== 'all') {
+      combinedData = combinedData.filter((item) => item.type === typeFilter)
+    }
+
+    setReportData(combinedData.sort((a, b) => (a.date > b.date ? 1 : -1)))
   }
 
   const handleExportExcel = () => {
@@ -45,7 +122,7 @@ const RelatoriosPage = () => {
       })
       return
     }
-    const filename = `relatorio_lancamentos_${format(new Date(), 'yyyy-MM-dd')}.xlsx`
+    const filename = `relatorio_financeiro_${format(new Date(), 'yyyy-MM-dd')}.xlsx`
     exportToExcel(reportData, filename)
   }
 
@@ -58,16 +135,16 @@ const RelatoriosPage = () => {
   return (
     <div className="page-content">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Relatórios de Lançamentos</h2>
+        <h2 className="text-2xl font-bold">Relatórios Personalizados</h2>
       </div>
       <Card className="p-6">
-        <div className="flex flex-col md:flex-row gap-4 mb-6 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 id="date"
                 variant={'outline'}
-                className="w-full md:w-[300px] justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {date?.from ? (
@@ -95,28 +172,48 @@ const RelatoriosPage = () => {
               />
             </PopoverContent>
           </Popover>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Tipo de Transação" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Tipos</SelectItem>
+              <SelectItem value="Receita">Receitas</SelectItem>
+              <SelectItem value="Despesa">Despesas</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="lg:col-span-2">
+            <MultiSelectCombobox
+              options={categoryOptions}
+              value={categoryFilter}
+              onChange={setCategoryFilter}
+              placeholder="Filtrar categorias..."
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
           <Button onClick={handleGenerateReport}>Gerar Relatório</Button>
         </div>
-
-        {reportData !== null && (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={handleExportPdf}>
-              <File className="mr-2 h-4 w-4" /> Exportar PDF
-            </Button>
-            <Button variant="outline" onClick={handleExportExcel}>
-              <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
-            </Button>
-          </div>
-        )}
       </Card>
 
+      {reportData !== null && (
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={handleExportPdf}>
+            <File className="mr-2 h-4 w-4" /> Exportar PDF
+          </Button>
+          <Button variant="outline" onClick={handleExportExcel}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Exportar Excel
+          </Button>
+        </div>
+      )}
+
       {reportData !== null ? (
-        <RelatorioLancamentosTable lancamentos={reportData} />
+        <RelatorioTable data={reportData} />
       ) : (
         <div className="mt-6 min-h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg p-4">
           <p className="text-muted-foreground text-center">
-            Selecione um período e clique em "Gerar Relatório" para visualizar
-            os lançamentos.
+            Selecione os filtros e clique em "Gerar Relatório" para visualizar
+            os dados.
           </p>
         </div>
       )}

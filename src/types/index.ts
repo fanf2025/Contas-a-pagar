@@ -46,9 +46,15 @@ export type FinancialGoal = {
   contributions: GoalContribution[]
 }
 
+export type CashCategory = {
+  id: string
+  nome: string
+}
+
 export type CashEntry = {
   id: string
   date: string
   value: number
   origin: string
+  categoryId: string
 }

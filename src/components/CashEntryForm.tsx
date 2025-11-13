@@ -20,6 +20,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { useAppStore } from '@/data/store'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -28,12 +35,13 @@ const cashEntrySchema = z.object({
   date: z.date({ required_error: 'A data é obrigatória.' }),
   value: z.coerce.number().positive('O valor deve ser maior que zero.'),
   origin: z.string().min(3, 'A origem é obrigatória.'),
+  categoryId: z.string({ required_error: 'A categoria é obrigatória.' }),
 })
 
 type CashEntryFormValues = z.infer<typeof cashEntrySchema>
 
 export const CashEntryForm = () => {
-  const addCashEntry = useAppStore((state) => state.addCashEntry)
+  const { addCashEntry, cashCategories } = useAppStore()
   const {
     control,
     register,
@@ -50,7 +58,7 @@ export const CashEntryForm = () => {
       date: format(data.date, 'yyyy-MM-dd'),
     })
     toast.success('Lançamento de caixa adicionado com sucesso!')
-    reset({ date: undefined, value: undefined, origin: '' })
+    reset({ date: undefined, value: undefined, origin: '', categoryId: '' })
   }
 
   return (
@@ -63,7 +71,7 @@ export const CashEntryForm = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1">
               <Label>Data</Label>
               <Controller
@@ -124,6 +132,35 @@ export const CashEntryForm = () => {
               {errors.origin && (
                 <p className="text-sm text-destructive">
                   {errors.origin.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-1">
+              <Label>Categoria</Label>
+              <Controller
+                name="categoryId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cashCategories.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.categoryId && (
+                <p className="text-sm text-destructive">
+                  {errors.categoryId.message}
                 </p>
               )}
             </div>
