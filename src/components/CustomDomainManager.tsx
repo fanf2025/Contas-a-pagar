@@ -180,7 +180,7 @@ export const CustomDomainManager = () => {
           <CardTitle>Conectar Domínio Personalizado</CardTitle>
           <CardDescription>
             Use seu próprio domínio para sua aplicação.
-          </-CardDescription>
+          </CardDescription>
         </CardHeader>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent>
