@@ -12,6 +12,7 @@ import { CategoryManager } from '@/components/CategoryManager'
 import { SupplierManager } from '@/components/SupplierManager'
 import { PaymentMethodManager } from '@/components/PaymentMethodManager'
 import { CashCategoryManager } from '@/components/CashCategoryManager'
+import { AnalyticsManager } from '@/components/AnalyticsManager'
 
 const ConfiguracoesPage = () => {
   const {
@@ -29,6 +30,7 @@ const ConfiguracoesPage = () => {
         <SupplierManager />
         <PaymentMethodManager />
       </div>
+      <AnalyticsManager />
       <Card>
         <CardHeader>
           <CardTitle>Notificações</CardTitle>
