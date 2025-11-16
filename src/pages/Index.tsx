@@ -104,10 +104,13 @@ const Dashboard = () => {
     return { totalContasAPagar, totalLancamentosCaixa, saldo }
   }, [lancamentos, cashEntries, ano, mes, periodFilter])
 
-  const filteredLancamentos = lancamentos.filter(
-    (l) => l.mes === mes && l.ano === ano,
-  )
-  const totalPago = filteredLancamentos.reduce((acc, l) => acc + l.valorPago, 0)
+  const filteredLancamentos = lancamentos.filter((l) => {
+    const dueDate = parseISO(l.dataVencimento)
+    return getMonth(dueDate) === meses.indexOf(mes) && getYear(dueDate) === ano
+  })
+  const totalPago = filteredLancamentos
+    .filter((l) => l.dataPagamento)
+    .reduce((acc, l) => acc + l.valorPago, 0)
 
   const despesasPorCategoriaData = Object.entries(
     filteredLancamentos.reduce(

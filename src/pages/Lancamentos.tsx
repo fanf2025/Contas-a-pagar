@@ -25,7 +25,10 @@ import {
 import { useAppStore } from '@/data/store'
 import { Lancamento, CashEntry } from '@/types'
 import { LancamentosTable } from '@/components/LancamentosTable'
-import { ManageLancamentoDialog } from '@/components/ManageLancamentoDialog'
+import {
+  ManageLancamentoDialog,
+  LancamentoFormValues,
+} from '@/components/ManageLancamentoDialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +40,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { toast } from 'sonner'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { DateRange } from 'react-day-picker'
 import { useExcelExport } from '@/hooks/useExcelExport'
@@ -54,6 +57,7 @@ const LancamentosPage = () => {
     addLancamento,
     updateLancamento,
     deleteLancamento,
+    deleteLancamentosByCompraId,
     addMultipleLancamentos,
     categorias,
     fornecedores,
@@ -66,9 +70,8 @@ const LancamentosPage = () => {
   const [selectedLancamento, setSelectedLancamento] =
     useState<Lancamento | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [lancamentoToDeleteId, setLancamentoToDeleteId] = useState<
-    string | null
-  >(null)
+  const [lancamentoToDelete, setLancamentoToDelete] =
+    useState<Lancamento | null>(null)
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const { exportToExcel } = useExcelExport()
 
@@ -89,35 +92,43 @@ const LancamentosPage = () => {
   const [dateFilter, setDateFilter] = useState<DateRange | undefined>()
 
   const filteredLancamentos = useMemo(() => {
-    return lancamentos.filter((l) => {
-      const searchTermLower = searchTerm.toLowerCase()
-      const matchesSearch =
-        l.numeroDocumento.toLowerCase().includes(searchTermLower) ||
-        l.categoria.toLowerCase().includes(searchTermLower) ||
-        l.fornecedor.toLowerCase().includes(searchTermLower)
+    return lancamentos
+      .filter((l) => {
+        const searchTermLower = searchTerm.toLowerCase()
+        const matchesSearch =
+          l.numeroDocumento.toLowerCase().includes(searchTermLower) ||
+          l.categoria.toLowerCase().includes(searchTermLower) ||
+          l.fornecedor.toLowerCase().includes(searchTermLower)
 
-      const matchesCategory =
-        categoryFilter === 'all' || l.categoria === categoryFilter
-      const matchesSupplier =
-        supplierFilter === 'all' || l.fornecedor === supplierFilter
+        const matchesCategory =
+          categoryFilter === 'all' || l.categoria === categoryFilter
+        const matchesSupplier =
+          supplierFilter === 'all' || l.fornecedor === supplierFilter
 
-      const vencimentoDate = parseISO(l.dataVencimento)
-      const matchesDate =
-        !dateFilter ||
-        (!dateFilter.from && !dateFilter.to) ||
-        (dateFilter.from &&
-          !dateFilter.to &&
-          vencimentoDate >= dateFilter.from) ||
-        (!dateFilter.from &&
-          dateFilter.to &&
-          vencimentoDate <= dateFilter.to) ||
-        (dateFilter.from &&
-          dateFilter.to &&
-          vencimentoDate >= dateFilter.from &&
-          vencimentoDate <= dateFilter.to)
+        const vencimentoDate = parseISO(l.dataVencimento)
+        const matchesDate =
+          !dateFilter ||
+          (!dateFilter.from && !dateFilter.to) ||
+          (dateFilter.from &&
+            !dateFilter.to &&
+            vencimentoDate >= dateFilter.from) ||
+          (!dateFilter.from &&
+            dateFilter.to &&
+            vencimentoDate <= dateFilter.to) ||
+          (dateFilter.from &&
+            dateFilter.to &&
+            vencimentoDate >= dateFilter.from &&
+            vencimentoDate <= dateFilter.to)
 
-      return matchesSearch && matchesCategory && matchesSupplier && matchesDate
-    })
+        return (
+          matchesSearch && matchesCategory && matchesSupplier && matchesDate
+        )
+      })
+      .sort(
+        (a, b) =>
+          parseISO(a.dataVencimento).getTime() -
+          parseISO(b.dataVencimento).getTime(),
+      )
   }, [lancamentos, searchTerm, categoryFilter, supplierFilter, dateFilter])
 
   const handleOpenManageDialog = (lancamento: Lancamento | null = null) => {
@@ -130,53 +141,80 @@ const LancamentosPage = () => {
     setIsManageDialogOpen(false)
   }
 
-  const handleSaveLancamento = (
-    data: Omit<
-      Lancamento,
-      | 'id'
-      | 'mes'
-      | 'ano'
-      | 'tipo'
-      | 'valorPago'
-      | 'dataPagamento'
-      | 'juros'
-      | 'data'
-    >,
-  ) => {
-    const today = new Date()
-    const lancamentoData = {
-      ...data,
-      data: format(today, 'yyyy-MM-dd'),
-      mes: format(today, 'MMMM', { locale: ptBR }),
-      ano: today.getFullYear(),
-    }
-
+  const handleSaveLancamento = (data: LancamentoFormValues) => {
     if (selectedLancamento) {
-      updateLancamento({ ...selectedLancamento, ...lancamentoData })
+      // Update logic
+      const updatedData = {
+        ...selectedLancamento,
+        ...data,
+        dataVencimento: format(data.dataVencimento, 'yyyy-MM-dd'),
+        descricao: data.fornecedor || `Lançamento ${data.numeroDocumento}`,
+      }
+      updateLancamento(updatedData)
       toast.success('Lançamento atualizado com sucesso!')
     } else {
-      addLancamento({
-        ...lancamentoData,
-        tipo: 'DESPESAS' as const,
-        valorPago: 0,
-        dataPagamento: null,
-        juros: 0,
-      })
-      toast.success('Lançamento criado com sucesso!')
+      // Create logic
+      const today = new Date()
+      const compraId =
+        data.totalParcelas > 1 ? `compra-${new Date().getTime()}` : undefined
+      const valorParcela = data.valor / data.totalParcelas
+
+      const newLancamentos: Omit<Lancamento, 'id'>[] = []
+
+      for (let i = 0; i < data.totalParcelas; i++) {
+        newLancamentos.push({
+          data: format(today, 'yyyy-MM-dd'),
+          dataVencimento: format(
+            addMonths(data.dataVencimento, i),
+            'yyyy-MM-dd',
+          ),
+          mes: format(addMonths(data.dataVencimento, i), 'MMMM', {
+            locale: ptBR,
+          }),
+          ano: addMonths(data.dataVencimento, i).getFullYear(),
+          tipo: 'DESPESAS',
+          categoria: data.categoria,
+          descricao: data.fornecedor || `Lançamento ${data.numeroDocumento}`,
+          fornecedor: data.fornecedor || 'N/A',
+          numeroDocumento: data.numeroDocumento,
+          valor: valorParcela,
+          valorPago: 0,
+          tipoPagamento: 'Boleto Bancário',
+          dataPagamento: null,
+          juros: 0,
+          recorrente: data.recorrente,
+          compraId,
+          parcelaAtual: data.totalParcelas > 1 ? i + 1 : undefined,
+          totalParcelas:
+            data.totalParcelas > 1 ? data.totalParcelas : undefined,
+        })
+      }
+      addMultipleLancamentos(newLancamentos)
+      toast.success(
+        `${data.totalParcelas} ${data.totalParcelas > 1 ? 'parcelas criadas' : 'lançamento criado'} com sucesso!`,
+      )
     }
   }
 
   const handleDeleteRequest = (id: string) => {
-    setLancamentoToDeleteId(id)
-    setIsDeleteDialogOpen(true)
+    const lancamento = lancamentos.find((l) => l.id === id)
+    if (lancamento) {
+      setLancamentoToDelete(lancamento)
+      setIsDeleteDialogOpen(true)
+    }
   }
 
   const handleDeleteConfirm = () => {
-    if (lancamentoToDeleteId) {
-      deleteLancamento(lancamentoToDeleteId)
-      toast.success('Lançamento excluído com sucesso!')
+    if (lancamentoToDelete) {
+      if (lancamentoToDelete.compraId) {
+        deleteLancamentosByCompraId(lancamentoToDelete.compraId)
+        toast.success('Todas as parcelas foram excluídas com sucesso!')
+      } else {
+        deleteLancamento(lancamentoToDelete.id)
+        toast.success('Lançamento excluído com sucesso!')
+      }
       setIsDeleteDialogOpen(false)
-      setLancamentoToDeleteId(null)
+      setLancamentoToDelete(null)
     }
   }
 
@@ -357,12 +395,13 @@ const LancamentosPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o
-              lançamento.
+              {lancamentoToDelete?.compraId
+                ? 'Esta ação não pode ser desfeita. Isso excluirá permanentemente TODAS as parcelas associadas a esta compra.'
+                : 'Esta ação não pode ser desfeita. Isso excluirá permanentemente o lançamento.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setLancamentoToDeleteId(null)}>
+            <AlertDialogCancel onClick={() => setLancamentoToDelete(null)}>
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>

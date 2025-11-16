@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/tooltip'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { MoreHorizontal, Edit, Trash2, Repeat, Layers } from 'lucide-react'
+import { MoreHorizontal, Edit, Trash2, Repeat } from 'lucide-react'
 import { Lancamento } from '@/types'
 import { format, parseISO } from 'date-fns'
 
@@ -51,7 +51,7 @@ export const LancamentosTable = ({
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Recorrente</TableHead>
-            <TableHead className="text-center">Parcelado</TableHead>
+            <TableHead className="text-center">Parcela</TableHead>
             <TableHead className="text-right">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -93,18 +93,9 @@ export const LancamentosTable = ({
                   )}
                 </TableCell>
                 <TableCell className="text-center">
-                  {lancamento.maisDeUmaParcela && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Layers className="h-4 w-4 text-primary mx-auto" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Possui mais de uma parcela</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
+                  {lancamento.parcelaAtual && lancamento.totalParcelas
+                    ? `${lancamento.parcelaAtual}/${lancamento.totalParcelas}`
+                    : '-'}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

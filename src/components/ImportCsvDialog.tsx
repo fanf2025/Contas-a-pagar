@@ -85,9 +85,12 @@ const validateAndTransform = (
 
     const recorrente =
       row.recorrente?.toLowerCase() === 'true' || row.recorrente === '1'
-    const maisDeUmaParcela =
-      row.maisDeUmaParcela?.toLowerCase() === 'true' ||
-      row.maisDeUmaParcela === '1'
+    const totalParcelas = row.totalParcelas
+      ? parseInt(row.totalParcelas, 10)
+      : undefined
+    const parcelaAtual = row.parcelaAtual
+      ? parseInt(row.parcelaAtual, 10)
+      : undefined
 
     const today = new Date()
 
@@ -107,7 +110,9 @@ const validateAndTransform = (
       dataPagamento: null,
       juros: 0,
       recorrente,
-      maisDeUmaParcela,
+      compraId: row.compraId,
+      totalParcelas,
+      parcelaAtual,
     }
   })
 }
@@ -182,10 +187,10 @@ export const ImportCsvDialog = ({
         <DialogHeader>
           <DialogTitle>Importar Lançamentos de CSV</DialogTitle>
           <DialogDescription>
-            Selecione um arquivo CSV. Campos obrigatórios: dataVencimento
-            (AAAA-MM-DD), categoria, numeroDocumento, valor. Opcionais:
-            descricao, fornecedor, tipoPagamento, recorrente (true/false),
-            maisDeUmaParcela (true/false).
+            Campos obrigatórios: dataVencimento (AAAA-MM-DD), categoria,
+            numeroDocumento, valor. Opcionais: descricao, fornecedor,
+            tipoPagamento, recorrente (true/false), compraId, parcelaAtual,
+            totalParcelas.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

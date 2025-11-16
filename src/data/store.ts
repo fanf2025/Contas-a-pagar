@@ -58,7 +58,6 @@ const initialLancamentos: Lancamento[] = [
     dataPagamento: '2025-07-10',
     juros: 0,
     recorrente: false,
-    maisDeUmaParcela: false,
   },
   {
     id: '2',
@@ -77,7 +76,6 @@ const initialLancamentos: Lancamento[] = [
     dataPagamento: '2025-07-05',
     juros: 0,
     recorrente: true,
-    maisDeUmaParcela: false,
   },
   {
     id: '3',
@@ -96,10 +94,9 @@ const initialLancamentos: Lancamento[] = [
     dataPagamento: null,
     juros: 0,
     recorrente: true,
-    maisDeUmaParcela: false,
   },
   {
-    id: '4',
+    id: '4-1',
     data: '2025-06-15',
     dataVencimento: '2025-06-20',
     numeroDocumento: 'DOC-004',
@@ -109,13 +106,57 @@ const initialLancamentos: Lancamento[] = [
     categoria: 'Marketing e Publicidade',
     descricao: 'Impulsionamento redes sociais',
     fornecedor: 'Agência Criativa',
-    valor: 850.0,
-    valorPago: 850.0,
+    valor: 283.34,
+    valorPago: 283.34,
     tipoPagamento: 'Cartão de Crédito',
     dataPagamento: '2025-06-20',
     juros: 0,
     recorrente: false,
-    maisDeUmaParcela: true,
+    compraId: 'compra-001',
+    parcelaAtual: 1,
+    totalParcelas: 3,
+  },
+  {
+    id: '4-2',
+    data: '2025-06-15',
+    dataVencimento: '2025-07-20',
+    numeroDocumento: 'DOC-004',
+    mes: 'Julho',
+    ano: 2025,
+    tipo: 'DESPESAS',
+    categoria: 'Marketing e Publicidade',
+    descricao: 'Impulsionamento redes sociais',
+    fornecedor: 'Agência Criativa',
+    valor: 283.33,
+    valorPago: 0,
+    tipoPagamento: 'Cartão de Crédito',
+    dataPagamento: null,
+    juros: 0,
+    recorrente: false,
+    compraId: 'compra-001',
+    parcelaAtual: 2,
+    totalParcelas: 3,
+  },
+  {
+    id: '4-3',
+    data: '2025-06-15',
+    dataVencimento: '2025-08-20',
+    numeroDocumento: 'DOC-004',
+    mes: 'Agosto',
+    ano: 2025,
+    tipo: 'DESPESAS',
+    categoria: 'Marketing e Publicidade',
+    descricao: 'Impulsionamento redes sociais',
+    fornecedor: 'Agência Criativa',
+    valor: 283.33,
+    valorPago: 0,
+    tipoPagamento: 'Cartão de Crédito',
+    dataPagamento: null,
+    juros: 0,
+    recorrente: false,
+    compraId: 'compra-001',
+    parcelaAtual: 3,
+    totalParcelas: 3,
   },
   {
     id: '5',
@@ -134,7 +175,6 @@ const initialLancamentos: Lancamento[] = [
     dataPagamento: null,
     juros: 0,
     recorrente: true,
-    maisDeUmaParcela: false,
   },
 ]
 
@@ -196,6 +236,7 @@ interface AppState {
   addMultipleLancamentos: (lancamentos: Omit<Lancamento, 'id'>[]) => void
   updateLancamento: (lancamento: Lancamento) => void
   deleteLancamento: (id: string) => void
+  deleteLancamentosByCompraId: (compraId: string) => void
   addCategoria: (nome: string) => void
   updateCategoria: (categoria: Categoria) => void
   deleteCategoria: (id: string) => void
@@ -254,6 +295,10 @@ export const useAppStore = create<AppState>()(
       deleteLancamento: (id) =>
         set((state) => ({
           lancamentos: state.lancamentos.filter((l) => l.id !== id),
+        })),
+      deleteLancamentosByCompraId: (compraId) =>
+        set((state) => ({
+          lancamentos: state.lancamentos.filter((l) => l.compraId !== compraId),
         })),
 
       addCategoria: (nome) =>
