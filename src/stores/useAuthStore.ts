@@ -1,50 +1,63 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-interface User {
+// This type is for external use, representing the full user object
+export interface UserProfile {
   email: string
   name: string
-  password?: string // Keep password for mock registration
   avatar?: string
+}
+
+// This type is for internal store state, without the large avatar data
+interface UserInState {
+  email: string
+  name: string
+}
+
+// This type is for the mock database, which includes the password
+interface UserInDb extends UserInState {
+  password?: string
 }
 
 interface AuthState {
   isAuthenticated: boolean
-  user: User | null
-  users: User[] // To simulate a user database
+  user: UserInState | null
+  users: UserInDb[] // To simulate a user database
   login: (email: string, password: string) => Promise<void>
   socialLogin: () => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
-  updateUser: (name: string, email: string, avatar?: string) => Promise<void>
+  updateUser: (name: string, email: string) => Promise<void> // Avatar logic removed
   requestPasswordReset: (email: string) => Promise<void>
 }
+
+// Initial mock user in DB. Avatar is handled separately.
+const initialUsers: UserInDb[] = [
+  {
+    email: 'user@example.com',
+    name: 'John Doe',
+    password: 'password123',
+  },
+]
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       isAuthenticated: false,
       user: null,
-      users: [
-        {
-          email: 'user@example.com',
-          name: 'John Doe',
-          password: 'password123',
-          avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
-        },
-      ],
+      users: initialUsers,
       login: async (email, password) => {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
-            const user = get().users.find(
+            const userInDb = get().users.find(
               (u) => u.email === email && u.password === password,
             )
-            if (user) {
+            if (userInDb) {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { password, ...userWithoutPassword } = user
+              const { password, ...userToStore } = userInDb
               set({
                 isAuthenticated: true,
-                user: userWithoutPassword,
+                user: userToStore,
               })
               resolve()
             } else {
@@ -56,13 +69,13 @@ export const useAuthStore = create<AuthState>()(
       socialLogin: async () => {
         return new Promise((resolve) => {
           setTimeout(() => {
-            const user = get().users[0]
-            if (user) {
+            const userInDb = get().users[0]
+            if (userInDb) {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { password, ...userWithoutPassword } = user
+              const { password, ...userToStore } = userInDb
               set({
                 isAuthenticated: true,
-                user: userWithoutPassword,
+                user: userToStore,
               })
             }
             resolve()
@@ -78,7 +91,7 @@ export const useAuthStore = create<AuthState>()(
             if (userExists) {
               reject(new Error('Este email já está em uso.'))
             } else {
-              const newUser = { name, email, password, avatar: undefined }
+              const newUser: UserInDb = { name, email, password }
               set({ users: [...users, newUser] })
               resolve()
             }
@@ -88,7 +101,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({ isAuthenticated: false, user: null })
       },
-      updateUser: async (name, email, avatar) => {
+      updateUser: async (name, email) => {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
             const { user, users } = get()
@@ -102,16 +115,12 @@ export const useAuthStore = create<AuthState>()(
               return reject(new Error('Este email já está em uso.'))
             }
 
-            const updatedUser = {
-              ...user,
+            const updatedUser: UserInState = {
               name,
               email,
-              avatar: avatar ?? user.avatar,
             }
             const updatedUsers = users.map((u) =>
-              u.email === user.email
-                ? { ...u, name, email, avatar: updatedUser.avatar }
-                : u,
+              u.email === user.email ? { ...u, name, email } : u,
             )
             set({ user: updatedUser, users: updatedUsers })
             resolve()

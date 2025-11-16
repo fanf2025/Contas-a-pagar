@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useAvatarStore } from '@/stores/useAvatarStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const navItems = [
@@ -45,11 +46,14 @@ type AppHeaderProps = {
 export const AppHeader = ({ title }: AppHeaderProps) => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
+  const { getAvatar } = useAvatarStore()
 
   const handleLogout = () => {
     logout()
     navigate('/login')
   }
+
+  const userAvatar = user?.email ? getAvatar(user.email) : undefined
 
   return (
     <header className="page-header sticky top-0 z-30">
@@ -99,10 +103,7 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage
-                  src={user?.avatar || undefined}
-                  alt="Avatar do usuário"
-                />
+                <AvatarImage src={userAvatar} alt="Avatar do usuário" />
                 <AvatarFallback>
                   {user?.name
                     ? user.name

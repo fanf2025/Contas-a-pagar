@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useAvatarStore } from '@/stores/useAvatarStore'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { useState, useRef, ChangeEvent } from 'react'
+import { useState, useRef, ChangeEvent, useEffect } from 'react'
 import { Loader2, User as UserIcon } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
@@ -35,10 +36,9 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuthStore()
+  const { getAvatar, setAvatar } = useAvatarStore()
   const [isLoading, setIsLoading] = useState(false)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(
-    user?.avatar || null,
-  )
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const form = useForm<ProfileFormValues>({
@@ -48,6 +48,15 @@ const ProfilePage = () => {
       email: user?.email || '',
     },
   })
+
+  useEffect(() => {
+    if (user?.email) {
+      const storedAvatar = getAvatar(user.email)
+      if (storedAvatar) {
+        setAvatarPreview(storedAvatar)
+      }
+    }
+  }, [user, getAvatar])
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -61,9 +70,15 @@ const ProfilePage = () => {
   }
 
   const onSubmit = async (data: ProfileFormValues) => {
+    if (!user?.email) return
     setIsLoading(true)
     try {
-      await updateUser(data.name, data.email, avatarPreview || undefined)
+      await updateUser(data.name, data.email)
+
+      if (avatarPreview) {
+        setAvatar(data.email, avatarPreview)
+      }
+
       toast.success('Perfil atualizado com sucesso!')
     } catch (error) {
       if (error instanceof Error) {
