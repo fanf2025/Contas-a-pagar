@@ -5,6 +5,7 @@ interface User {
   email: string
   name: string
   password?: string // Keep password for mock registration
+  avatar?: string
 }
 
 interface AuthState {
@@ -15,7 +16,7 @@ interface AuthState {
   socialLogin: () => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
-  updateUser: (name: string, email: string) => Promise<void>
+  updateUser: (name: string, email: string, avatar?: string) => Promise<void>
   requestPasswordReset: (email: string) => Promise<void>
 }
 
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
           email: 'user@example.com',
           name: 'John Doe',
           password: 'password123',
+          avatar: 'https://img.usecurling.com/ppl/medium?gender=male&seed=1',
         },
       ],
       login: async (email, password) => {
@@ -76,7 +78,7 @@ export const useAuthStore = create<AuthState>()(
             if (userExists) {
               reject(new Error('Este email já está em uso.'))
             } else {
-              const newUser = { name, email, password }
+              const newUser = { name, email, password, avatar: undefined }
               set({ users: [...users, newUser] })
               resolve()
             }
@@ -86,7 +88,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({ isAuthenticated: false, user: null })
       },
-      updateUser: async (name, email) => {
+      updateUser: async (name, email, avatar) => {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
             const { user, users } = get()
@@ -100,9 +102,16 @@ export const useAuthStore = create<AuthState>()(
               return reject(new Error('Este email já está em uso.'))
             }
 
-            const updatedUser = { ...user, name, email }
+            const updatedUser = {
+              ...user,
+              name,
+              email,
+              avatar: avatar ?? user.avatar,
+            }
             const updatedUsers = users.map((u) =>
-              u.email === user.email ? { ...u, name, email } : u,
+              u.email === user.email
+                ? { ...u, name, email, avatar: updatedUser.avatar }
+                : u,
             )
             set({ user: updatedUser, users: updatedUsers })
             resolve()

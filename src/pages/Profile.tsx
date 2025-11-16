@@ -20,8 +20,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { useState, useRef, ChangeEvent } from 'react'
+import { Loader2, User as UserIcon } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 const profileSchema = z.object({
   name: z
@@ -35,6 +36,10 @@ type ProfileFormValues = z.infer<typeof profileSchema>
 const ProfilePage = () => {
   const { user, updateUser } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(
+    user?.avatar || null,
+  )
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -44,10 +49,21 @@ const ProfilePage = () => {
     },
   })
 
+  const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const onSubmit = async (data: ProfileFormValues) => {
     setIsLoading(true)
     try {
-      await updateUser(data.name, data.email)
+      await updateUser(data.name, data.email, avatarPreview || undefined)
       toast.success('Perfil atualizado com sucesso!')
     } catch (error) {
       if (error instanceof Error) {
@@ -72,6 +88,43 @@ const ProfilePage = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="flex items-center gap-6">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage
+                    src={avatarPreview || undefined}
+                    alt="Avatar do usuário"
+                  />
+                  <AvatarFallback>
+                    {user?.name ? (
+                      user.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                    ) : (
+                      <UserIcon className="h-12 w-12" />
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-2">
+                  <Button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    Alterar Foto
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    JPG, GIF ou PNG. Tamanho máximo de 800K.
+                  </p>
+                  <Input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/png, image/jpeg, image/gif"
+                    onChange={handleAvatarChange}
+                  />
+                </div>
+              </div>
+
               <FormField
                 control={form.control}
                 name="name"

@@ -100,7 +100,7 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src="https://img.usecurling.com/ppl/thumbnail?gender=male"
+                  src={user?.avatar || undefined}
                   alt="Avatar do usuário"
                 />
                 <AvatarFallback>
