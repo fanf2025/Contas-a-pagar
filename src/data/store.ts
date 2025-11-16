@@ -57,6 +57,8 @@ const initialLancamentos: Lancamento[] = [
     tipoPagamento: 'Boleto Bancário',
     dataPagamento: '2025-07-10',
     juros: 0,
+    recorrente: false,
+    maisDeUmaParcela: false,
   },
   {
     id: '2',
@@ -74,6 +76,8 @@ const initialLancamentos: Lancamento[] = [
     tipoPagamento: 'Débito em Conta',
     dataPagamento: '2025-07-05',
     juros: 0,
+    recorrente: true,
+    maisDeUmaParcela: false,
   },
   {
     id: '3',
@@ -91,6 +95,8 @@ const initialLancamentos: Lancamento[] = [
     tipoPagamento: 'Transferência (PIX)',
     dataPagamento: null,
     juros: 0,
+    recorrente: true,
+    maisDeUmaParcela: false,
   },
   {
     id: '4',
@@ -108,6 +114,8 @@ const initialLancamentos: Lancamento[] = [
     tipoPagamento: 'Cartão de Crédito',
     dataPagamento: '2025-06-20',
     juros: 0,
+    recorrente: false,
+    maisDeUmaParcela: true,
   },
   {
     id: '5',
@@ -125,6 +133,8 @@ const initialLancamentos: Lancamento[] = [
     tipoPagamento: 'Boleto Bancário',
     dataPagamento: null,
     juros: 0,
+    recorrente: true,
+    maisDeUmaParcela: false,
   },
 ]
 

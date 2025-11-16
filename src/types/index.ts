@@ -14,6 +14,8 @@ export type Lancamento = {
   tipoPagamento: string
   dataPagamento: string | null
   juros?: number
+  recorrente: boolean
+  maisDeUmaParcela: boolean
 }
 
 export type Categoria = {

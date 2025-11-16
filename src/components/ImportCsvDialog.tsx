@@ -54,11 +54,10 @@ const validateAndTransform = (
   parsedData: Record<string, string>[],
 ): Omit<Lancamento, 'id'>[] => {
   const requiredFields = [
-    'data',
+    'dataVencimento',
     'categoria',
-    'descricao',
+    'numeroDocumento',
     'valor',
-    'tipoPagamento',
   ]
 
   return parsedData.map((row, index) => {
@@ -70,10 +69,12 @@ const validateAndTransform = (
       }
     }
 
-    const date = parse(row.data, 'yyyy-MM-dd', new Date())
-    if (!isValid(date)) {
+    const vencimentoDate = parse(row.dataVencimento, 'yyyy-MM-dd', new Date())
+    if (!isValid(vencimentoDate)) {
       throw new Error(
-        `Linha ${index + 2}: Formato de data inválido para "${row.data}". Use AAAA-MM-DD.`,
+        `Linha ${index + 2}: Formato de data de vencimento inválido para "${
+          row.dataVencimento
+        }". Use AAAA-MM-DD.`,
       )
     }
 
@@ -82,18 +83,31 @@ const validateAndTransform = (
       throw new Error(`Linha ${index + 2}: Valor inválido "${row.valor}".`)
     }
 
+    const recorrente =
+      row.recorrente?.toLowerCase() === 'true' || row.recorrente === '1'
+    const maisDeUmaParcela =
+      row.maisDeUmaParcela?.toLowerCase() === 'true' ||
+      row.maisDeUmaParcela === '1'
+
+    const today = new Date()
+
     return {
-      data: row.data,
-      mes: format(date, 'MMMM'),
-      ano: date.getFullYear(),
+      data: format(today, 'yyyy-MM-dd'),
+      dataVencimento: row.dataVencimento,
+      mes: format(today, 'MMMM'),
+      ano: today.getFullYear(),
       tipo: 'DESPESAS',
       categoria: row.categoria,
-      descricao: row.descricao,
+      descricao: row.descricao || `Importado - ${row.numeroDocumento}`,
       fornecedor: row.fornecedor || 'N/A',
+      numeroDocumento: row.numeroDocumento,
       valor,
       valorPago: 0,
-      tipoPagamento: row.tipoPagamento,
+      tipoPagamento: row.tipoPagamento || 'Boleto Bancário',
       dataPagamento: null,
+      juros: 0,
+      recorrente,
+      maisDeUmaParcela,
     }
   })
 }
@@ -168,9 +182,10 @@ export const ImportCsvDialog = ({
         <DialogHeader>
           <DialogTitle>Importar Lançamentos de CSV</DialogTitle>
           <DialogDescription>
-            Selecione um arquivo CSV para importar. O arquivo deve conter as
-            colunas: data (AAAA-MM-DD), categoria, descricao, valor,
-            tipoPagamento, fornecedor (opcional).
+            Selecione um arquivo CSV. Campos obrigatórios: dataVencimento
+            (AAAA-MM-DD), categoria, numeroDocumento, valor. Opcionais:
+            descricao, fornecedor, tipoPagamento, recorrente (true/false),
+            maisDeUmaParcela (true/false).
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">

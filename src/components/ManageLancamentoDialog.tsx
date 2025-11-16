@@ -23,6 +23,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import { Checkbox } from '@/components/ui/checkbox'
 import { CalendarIcon } from 'lucide-react'
 import { format } from 'date-fns'
 import { useForm, Controller } from 'react-hook-form'
@@ -42,6 +43,8 @@ const lancamentoSchema = z.object({
   fornecedor: z.string().optional(),
   numeroDocumento: z.string().min(1, 'O Nº do Documento é obrigatório.'),
   valor: z.coerce.number().positive('O valor deve ser um número positivo.'),
+  recorrente: z.boolean().default(false),
+  maisDeUmaParcela: z.boolean().default(false),
 })
 
 type LancamentoFormValues = z.infer<typeof lancamentoSchema>
@@ -92,6 +95,8 @@ export const ManageLancamentoDialog = ({
           fornecedor: lancamento.fornecedor,
           numeroDocumento: lancamento.numeroDocumento,
           valor: lancamento.valor,
+          recorrente: lancamento.recorrente,
+          maisDeUmaParcela: lancamento.maisDeUmaParcela,
         })
       } else {
         reset({
@@ -100,6 +105,8 @@ export const ManageLancamentoDialog = ({
           fornecedor: undefined,
           numeroDocumento: '',
           valor: undefined,
+          recorrente: false,
+          maisDeUmaParcela: false,
         })
       }
     }
@@ -241,6 +248,34 @@ export const ManageLancamentoDialog = ({
             {errors.valor && (
               <p className="text-sm text-destructive">{errors.valor.message}</p>
             )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Controller
+              name="recorrente"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="recorrente"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="recorrente">Lançamento Recorrente</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Controller
+              name="maisDeUmaParcela"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="maisDeUmaParcela"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="maisDeUmaParcela">Possui mais de uma parcela</Label>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose}>
