@@ -16,9 +16,13 @@ import {
   BaixaFormValues,
 } from '@/components/ProcessarBaixaDialog'
 import { toast } from 'sonner'
+import { useSyncStore } from '@/stores/useSyncStore'
+import { useOfflineStore } from '@/stores/useOfflineStore'
 
 const BaixasPage = () => {
   const { lancamentos, updateLancamento } = useAppStore()
+  const { isOnline } = useSyncStore()
+  const { addAction } = useOfflineStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedLancamento, setSelectedLancamento] =
     useState<Lancamento | null>(null)
@@ -46,10 +50,22 @@ const BaixasPage = () => {
       tipoPagamento: data.tipoPagamento,
       juros: data.juros,
     }
+
     updateLancamento(updatedLancamento)
-    toast.success(
-      `Pagamento do documento ${lancamento.numeroDocumento} processado com sucesso!`,
-    )
+
+    if (isOnline) {
+      toast.success(
+        `Pagamento do documento ${lancamento.numeroDocumento} processado com sucesso!`,
+      )
+    } else {
+      addAction({
+        type: 'UPDATE_LANCAMENTO',
+        payload: updatedLancamento,
+      })
+      toast.info('Você está offline.', {
+        description: `O pagamento foi salvo localmente e será sincronizado quando houver conexão.`,
+      })
+    }
   }
 
   return (

@@ -13,6 +13,7 @@ import { SupplierManager } from '@/components/SupplierManager'
 import { PaymentMethodManager } from '@/components/PaymentMethodManager'
 import { CashCategoryManager } from '@/components/CashCategoryManager'
 import { AnalyticsManager } from '@/components/AnalyticsManager'
+import { BackupManager } from '@/components/BackupManager'
 
 const ConfiguracoesPage = () => {
   const {
@@ -31,6 +32,7 @@ const ConfiguracoesPage = () => {
         <PaymentMethodManager />
       </div>
       <AnalyticsManager />
+      <BackupManager />
       <Card>
         <CardHeader>
           <CardTitle>Notificações</CardTitle>

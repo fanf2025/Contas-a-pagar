@@ -3,6 +3,8 @@ import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
 import { NotificationHandler } from './NotificationHandler'
 import { SyncHandler } from './SyncHandler'
+import { ConflictResolutionDialog } from './ConflictResolutionDialog'
+import { BackupHandler } from './BackupHandler'
 
 const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/lancamentos/caixa/')) {
@@ -39,6 +41,8 @@ export default function Layout() {
     <div className="flex h-screen bg-background">
       <NotificationHandler />
       <SyncHandler />
+      <BackupHandler />
+      <ConflictResolutionDialog />
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AppHeader title={title} />

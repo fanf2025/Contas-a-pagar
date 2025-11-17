@@ -62,3 +62,17 @@ export type CashEntry = {
   origin: string
   categoryId: string
 }
+
+export type OfflineAction = {
+  id: string
+  type: 'UPDATE_LANCAMENTO' | 'DELETE_LANCAMENTO'
+  payload: any
+  timestamp: string
+}
+
+export type DataConflict = {
+  type: 'LANCAMENTO'
+  local: Lancamento
+  server: Lancamento
+  resolve: (resolution: 'local' | 'server') => void
+}
