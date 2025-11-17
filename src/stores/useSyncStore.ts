@@ -29,7 +29,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
   conflict: null,
   setIsOnline: (isOnline: boolean) => set({ isOnline }),
   syncData: async () => {
-    if (get().status === 'syncing') return
+    if (get().status === 'syncing' || get().status === 'conflict') return
     set({ status: 'syncing' })
     toast.info('Sincronização iniciada...', {
       description: 'Seus dados estão sendo enviados para a nuvem.',
@@ -72,7 +72,6 @@ export const useSyncStore = create<SyncState>((set, get) => ({
         }
       }
 
-      // Simulate final network request
       await new Promise<void>((resolve, reject) => {
         setTimeout(() => {
           const shouldSucceed = Math.random() > 0.1
@@ -84,18 +83,27 @@ export const useSyncStore = create<SyncState>((set, get) => ({
         }, 1000)
       })
 
-      // If we reach here, it means success
       set({ status: 'success', lastSync: new Date() })
       toast.success('Sincronização concluída!', {
         description: 'Seus dados foram salvos na nuvem com sucesso.',
       })
+      setTimeout(() => {
+        if (get().status === 'success') {
+          set({ status: 'idle' })
+        }
+      }, 3000)
     } catch (error) {
       console.error('Sync failed:', error)
       set({ status: 'error' })
       toast.error('Falha na sincronização', {
         description:
-          'Não foi possível salvar seus dados. Tentaremos novamente mais tarde.',
+          'Não foi possível salvar seus dados. Tentaremos novamente em breve.',
       })
+      setTimeout(() => {
+        if (get().status === 'error') {
+          set({ status: 'idle' })
+        }
+      }, 10000)
     }
   },
   resolveConflict: (resolution) => {
@@ -122,6 +130,5 @@ export const useSyncStore = create<SyncState>((set, get) => ({
     toast.success('Conflito resolvido.', {
       description: 'A sincronização continuará automaticamente.',
     })
-    get().syncData()
   },
 }))

@@ -1,8 +1,10 @@
 import { useEffect } from 'react'
 import { useSyncStore } from '@/stores/useSyncStore'
+import { useOfflineStore } from '@/stores/useOfflineStore'
 
 export const SyncHandler = () => {
   const { isOnline, setIsOnline, syncData, status } = useSyncStore()
+  const { actionQueue } = useOfflineStore()
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true)
@@ -18,11 +20,10 @@ export const SyncHandler = () => {
   }, [setIsOnline])
 
   useEffect(() => {
-    if (isOnline && status !== 'syncing') {
-      // Trigger sync when coming online
+    if (isOnline && actionQueue.length > 0 && status === 'idle') {
       syncData().catch((err) => console.error(err))
     }
-  }, [isOnline, syncData, status])
+  }, [isOnline, actionQueue.length, status, syncData])
 
-  return null // This is a side-effect component
+  return null
 }
