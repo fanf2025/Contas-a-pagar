@@ -6,6 +6,7 @@ import { SyncHandler } from './SyncHandler'
 import { ConflictResolutionDialog } from './ConflictResolutionDialog'
 import { BackupHandler } from './BackupHandler'
 import { SyncNotificationHandler } from './SyncNotificationHandler'
+import { UpdateHandler } from './UpdateHandler'
 
 const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/lancamentos/caixa/')) {
@@ -42,6 +43,7 @@ export default function Layout() {
 
   return (
     <div className="flex h-screen bg-background">
+      <UpdateHandler />
       <NotificationHandler />
       <SyncHandler />
       <BackupHandler />
