@@ -46,7 +46,7 @@ const InstallationGuidePage = () => {
                 oficial do instalador para Windows.
               </p>
               <Button asChild>
-                <a href="https://example.com/download/contas-a-pagar-setup.exe">
+                <a href="https://github.com/skip-me/contas-a-pagar/releases/latest/download/contas-a-pagar_1.0.0_x64-setup.msi">
                   <Download className="mr-2 h-4 w-4" />
                   Baixar Instalador para Windows
                 </a>
@@ -108,7 +108,7 @@ const InstallationGuidePage = () => {
                   <AccordionContent>
                     Após o download, localize o arquivo{' '}
                     <code className="bg-muted px-1 py-0.5 rounded">
-                      contas-a-pagar-setup.exe
+                      contas-a-pagar_1.0.0_x64-setup.msi
                     </code>{' '}
                     e dê um duplo clique para executá-lo. O Windows pode exibir
                     um aviso de segurança; clique em "Mais informações" e depois
