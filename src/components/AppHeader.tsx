@@ -5,6 +5,7 @@ import {
   Target,
   User as UserIcon,
   UploadCloud,
+  HelpCircle,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -38,6 +39,7 @@ const navItems = [
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/publicar', label: 'Publicar', icon: UploadCloud },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
+  { to: '/instalacao', label: 'Instalação', icon: HelpCircle },
 ]
 
 type AppHeaderProps = {

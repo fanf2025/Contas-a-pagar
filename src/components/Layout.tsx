@@ -29,6 +29,8 @@ const getPageTitle = (pathname: string): string => {
       return 'Configurações'
     case '/perfil':
       return 'Meu Perfil'
+    case '/instalacao':
+      return 'Guia de Instalação'
     default:
       return 'Contas a Pagar'
   }

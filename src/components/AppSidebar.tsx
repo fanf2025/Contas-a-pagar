@@ -9,6 +9,7 @@ import {
   Receipt,
   Target,
   UploadCloud,
+  HelpCircle,
 } from 'lucide-react'
 import { NavLink, Link } from 'react-router-dom'
 import { useState } from 'react'
@@ -23,6 +24,7 @@ const navItems = [
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/publicar', label: 'Publicar', icon: UploadCloud },
   { to: '/configuracoes', label: 'Configurações', icon: Settings },
+  { to: '/instalacao', label: 'Instalação', icon: HelpCircle },
 ]
 
 export const AppSidebar = () => {
