@@ -19,10 +19,13 @@ export const UpdateHandler = () => {
     const setupTauriUpdater = async () => {
       try {
         // Dynamically import Tauri APIs to prevent build-time resolution errors.
+        // The /* @vite-ignore */ comment tells the bundler to leave these imports as-is.
         const { checkUpdate, installUpdate, onUpdaterEvent } = await import(
-          '@tauri-apps/api/updater'
+          /* @vite-ignore */ '@tauri-apps/api/updater'
         )
-        const { relaunch } = await import('@tauri-apps/api/process')
+        const { relaunch } = await import(
+          /* @vite-ignore */ '@tauri-apps/api/process'
+        )
 
         const checkForUpdates = async () => {
           try {
