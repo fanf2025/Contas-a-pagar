@@ -36,7 +36,10 @@ import {
 import { useBackupStore } from '@/stores/useBackupStore'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { HardDriveDownload, RotateCcw, Trash2 } from 'lucide-react'
+import { HardDriveDownload, RotateCcw, Trash2, Download } from 'lucide-react'
+import { ToggleGroup, ToggleGroupItem } from './ui/toggle-group'
+import { Label } from './ui/label'
+import { Input } from './ui/input'
 
 export const BackupManager = () => {
   const {
@@ -46,6 +49,11 @@ export const BackupManager = () => {
     createBackup,
     restoreFromBackup,
     deleteBackup,
+    backupTime,
+    setBackupTime,
+    backupDays,
+    setBackupDays,
+    exportBackup,
   } = useBackupStore()
   const [toRestore, setToRestore] = useState<string | null>(null)
   const [toDelete, setToDelete] = useState<string | null>(null)
@@ -68,6 +76,16 @@ export const BackupManager = () => {
     }
   }
 
+  const weekDays = [
+    { label: 'Dom', value: 0 },
+    { label: 'Seg', value: 1 },
+    { label: 'Ter', value: 2 },
+    { label: 'Qua', value: 3 },
+    { label: 'Qui', value: 4 },
+    { label: 'Sex', value: 5 },
+    { label: 'Sáb', value: 6 },
+  ]
+
   return (
     <>
       <Card>
@@ -85,17 +103,60 @@ export const BackupManager = () => {
                 Com que frequência os backups locais devem ser criados.
               </p>
             </div>
-            <Select value={frequency} onValueChange={setFrequency}>
+            <Select
+              value={frequency}
+              onValueChange={(v) => setFrequency(v as any)}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="daily">Diariamente</SelectItem>
                 <SelectItem value="weekly">Semanalmente</SelectItem>
+                <SelectItem value="custom">Personalizado</SelectItem>
                 <SelectItem value="manual">Manual</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {(frequency === 'daily' ||
+            frequency === 'weekly' ||
+            frequency === 'custom') && (
+            <div className="space-y-4 rounded-lg border p-4 shadow-sm animate-fade-in">
+              <h4 className="font-medium">Agendamento Personalizado</h4>
+              <div className="space-y-2">
+                <Label htmlFor="backup-time">Horário do Backup</Label>
+                <Input
+                  id="backup-time"
+                  type="time"
+                  value={backupTime}
+                  onChange={(e) => setBackupTime(e.target.value)}
+                  className="w-[120px]"
+                />
+              </div>
+              {(frequency === 'weekly' || frequency === 'custom') && (
+                <div className="space-y-2">
+                  <Label>Dias da Semana</Label>
+                  <ToggleGroup
+                    type="multiple"
+                    variant="outline"
+                    value={backupDays.map(String)}
+                    onValueChange={(days) => setBackupDays(days.map(Number))}
+                    className="flex flex-wrap gap-1"
+                  >
+                    {weekDays.map((day) => (
+                      <ToggleGroupItem
+                        key={day.value}
+                        value={String(day.value)}
+                        aria-label={day.label}
+                      >
+                        {day.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+              )}
+            </div>
+          )}
           <div>
             <h4 className="font-medium mb-2">Backups Disponíveis</h4>
             <div className="rounded-md border">
@@ -122,6 +183,13 @@ export const BackupManager = () => {
                         </TableCell>
                         <TableCell>{backup.filename}</TableCell>
                         <TableCell className="text-right space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => exportBackup(backup.timestamp)}
+                          >
+                            <Download className="mr-2 h-4 w-4" /> Exportar
+                          </Button>
                           <Button
                             variant="outline"
                             size="sm"

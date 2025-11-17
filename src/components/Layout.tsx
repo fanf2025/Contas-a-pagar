@@ -5,6 +5,7 @@ import { NotificationHandler } from './NotificationHandler'
 import { SyncHandler } from './SyncHandler'
 import { ConflictResolutionDialog } from './ConflictResolutionDialog'
 import { BackupHandler } from './BackupHandler'
+import { SyncNotificationHandler } from './SyncNotificationHandler'
 
 const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/lancamentos/caixa/')) {
@@ -42,6 +43,7 @@ export default function Layout() {
       <NotificationHandler />
       <SyncHandler />
       <BackupHandler />
+      <SyncNotificationHandler />
       <ConflictResolutionDialog />
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">

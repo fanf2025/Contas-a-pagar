@@ -1,38 +1,52 @@
 import { useEffect } from 'react'
 import { useBackupStore } from '@/stores/useBackupStore'
-import { differenceInHours } from 'date-fns'
+import { differenceInHours, getDay, format } from 'date-fns'
 
 export const BackupHandler = () => {
-  const { frequency, lastBackup, createBackup } = useBackupStore()
+  const { frequency, lastBackup, createBackup, backupTime, backupDays } =
+    useBackupStore()
 
   useEffect(() => {
     const checkAndRunBackup = () => {
       if (frequency === 'manual') return
 
       const now = new Date()
-      if (!lastBackup) {
-        createBackup()
+      const lastBackupDate = lastBackup ? new Date(lastBackup) : null
+
+      const hoursSinceLastBackup = lastBackupDate
+        ? differenceInHours(now, lastBackupDate)
+        : Infinity
+      if (hoursSinceLastBackup < 23) {
         return
       }
 
-      const lastBackupDate = new Date(lastBackup)
-      const hoursSinceLastBackup = differenceInHours(now, lastBackupDate)
+      let shouldBackup = false
+      const currentTime = format(now, 'HH:mm')
+      const currentDay = getDay(now)
 
-      const shouldBackup =
-        (frequency === 'daily' && hoursSinceLastBackup >= 24) ||
-        (frequency === 'weekly' && hoursSinceLastBackup >= 24 * 7)
+      if (currentTime !== backupTime) return
+
+      switch (frequency) {
+        case 'daily':
+          shouldBackup = true
+          break
+        case 'weekly':
+        case 'custom':
+          if (backupDays.includes(currentDay)) {
+            shouldBackup = true
+          }
+          break
+      }
 
       if (shouldBackup) {
         createBackup()
       }
     }
 
-    checkAndRunBackup()
-
-    const intervalId = setInterval(checkAndRunBackup, 1000 * 60 * 60)
+    const intervalId = setInterval(checkAndRunBackup, 1000 * 60)
 
     return () => clearInterval(intervalId)
-  }, [frequency, lastBackup, createBackup])
+  }, [frequency, lastBackup, createBackup, backupTime, backupDays])
 
   return null
 }
