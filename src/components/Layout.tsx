@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
 import { NotificationHandler } from './NotificationHandler'
+import { SyncHandler } from './SyncHandler'
 
 const getPageTitle = (pathname: string): string => {
   if (pathname.startsWith('/lancamentos/caixa/')) {
@@ -37,6 +38,7 @@ export default function Layout() {
   return (
     <div className="flex h-screen bg-background">
       <NotificationHandler />
+      <SyncHandler />
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <AppHeader title={title} />

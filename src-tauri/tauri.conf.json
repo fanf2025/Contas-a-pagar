@@ -20,8 +20,8 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
-      "copyright": "",
+      "category": "Finance",
+      "copyright": "Copyright © 2025. All rights reserved.",
       "deb": {
         "depends": []
       },
@@ -34,7 +34,7 @@
         "icons/icon.ico"
       ],
       "identifier": "com.contasapagar.app",
-      "longDescription": "",
+      "longDescription": "Um sistema completo para registrar, filtrar, pagar e analisar despesas anuais, com rastreabilidade detalhada e funcionalidades offline.",
       "macOS": {
         "entitlements": null,
         "exceptionDomain": "",
@@ -43,7 +43,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "Gerenciador financeiro de contas a pagar.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
