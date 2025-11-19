@@ -26,59 +26,19 @@ import {
   CheckCircle,
   AlertTriangle,
   ExternalLink,
-  RefreshCw,
-  WifiOff,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const InstallationGuidePage = () => {
-  const [isDownloading, setIsDownloading] = useState(false)
-  const [downloadError, setDownloadError] = useState<string | null>(null)
-
-  const installerUrl =
-    'https://github.com/skip-me/contas-a-pagar/releases/latest/download/contas-a-pagar_1.0.0_x64-setup.msi'
   const releasesUrl =
     'https://github.com/skip-me/contas-a-pagar/releases/latest'
 
-  const handleDownload = async () => {
-    setDownloadError(null)
-    setIsDownloading(true)
-
-    // Check for network connectivity first
-    if (!navigator.onLine) {
-      setDownloadError(
-        'Sem conexão com a internet. Verifique sua rede e tente novamente.',
-      )
-      setIsDownloading(false)
-      return
-    }
-
-    try {
-      // We use a direct link trigger to let the browser handle the download stream.
-      // This avoids CORS issues and memory limits associated with fetch/blob for large files.
-      const link = document.createElement('a')
-      link.href = installerUrl
-      link.setAttribute('download', 'contas-a-pagar_setup.msi')
-      link.setAttribute('target', '_blank')
-      link.setAttribute('rel', 'noopener noreferrer')
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-
-      toast.success('Download iniciado!', {
-        description: 'O instalador está sendo baixado pelo seu navegador.',
-        duration: 5000,
-      })
-    } catch (error) {
-      console.error('Erro ao iniciar download:', error)
-      setDownloadError(
-        'Não foi possível iniciar o download automaticamente. Por favor, tente o link alternativo abaixo.',
-      )
-    } finally {
-      // Reset loading state after a short delay to prevent double clicks
-      setTimeout(() => setIsDownloading(false), 2000)
-    }
+  const handleDownload = () => {
+    window.open(releasesUrl, '_blank')
+    toast.success('Redirecionando para o GitHub...', {
+      description:
+        'Você pode baixar a versão mais recente na página de lançamentos.',
+    })
   }
 
   return (
@@ -101,45 +61,20 @@ const InstallationGuidePage = () => {
                   Download do Instalador
                 </h3>
                 <p className="text-muted-foreground">
-                  Clique no botão abaixo para baixar a versão mais recente e
-                  oficial do instalador para Windows.
+                  Clique no botão abaixo para acessar a página de downloads
+                  oficial no GitHub e baixar a versão mais recente do instalador
+                  para Windows (arquivo .msi).
                 </p>
               </div>
-
-              {downloadError && (
-                <Alert variant="destructive" className="animate-fade-in">
-                  <WifiOff className="h-4 w-4" />
-                  <AlertTitle>Erro no Download</AlertTitle>
-                  <AlertDescription className="flex flex-col gap-2">
-                    <p>{downloadError}</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-fit mt-2 border-destructive/50 hover:bg-destructive/10"
-                      onClick={() => window.open(releasesUrl, '_blank')}
-                    >
-                      <ExternalLink className="mr-2 h-4 w-4" />
-                      Acessar Página de Downloads
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
                   onClick={handleDownload}
-                  disabled={isDownloading}
                   className="w-full sm:w-auto"
                 >
-                  {isDownloading ? (
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="mr-2 h-4 w-4" />
-                  )}
-                  {isDownloading
-                    ? 'Iniciando...'
-                    : 'Baixar Instalador para Windows'}
+                  <Download className="mr-2 h-4 w-4" />
+                  Acessar Página de Downloads
                 </Button>
 
                 <Button
@@ -154,13 +89,13 @@ const InstallationGuidePage = () => {
                     rel="noopener noreferrer"
                   >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Outras Versões
+                    Ver Todas as Versões
                   </a>
                 </Button>
               </div>
 
               <p className="text-xs text-muted-foreground">
-                Versão 1.0.0 (x64) • Tamanho aprox. 5MB • Servidor Seguro
+                Versão Atual: 0.0.50 • Servidor Seguro
               </p>
             </div>
 
@@ -214,47 +149,45 @@ const InstallationGuidePage = () => {
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-1">
                   <AccordionTrigger>
-                    Passo 1: Execute o Instalador
+                    Passo 1: Baixe o Instalador
                   </AccordionTrigger>
                   <AccordionContent>
-                    Após o download, localize o arquivo{' '}
-                    <code className="bg-muted px-1 py-0.5 rounded">
-                      contas-a-pagar_1.0.0_x64-setup.msi
-                    </code>{' '}
-                    e dê um duplo clique para executá-lo. O Windows pode exibir
-                    um aviso de segurança; clique em "Mais informações" e depois
-                    em "Executar mesmo assim".
+                    Na página do GitHub, localize a seção "Assets" da versão
+                    mais recente e clique no arquivo com extensão{' '}
+                    <code>.msi</code> (ex:{' '}
+                    <code>contas-a-pagar_0.0.50_x64-setup.msi</code>) para
+                    iniciar o download.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
                   <AccordionTrigger>
-                    Passo 2: Siga as Instruções
+                    Passo 2: Execute o Arquivo
                   </AccordionTrigger>
                   <AccordionContent>
-                    O assistente de instalação será iniciado. Siga as instruções
-                    na tela, aceitando os termos de uso e escolhendo o local de
-                    instalação (recomendamos manter o padrão).
+                    Após o download, localize o arquivo baixado e dê um duplo
+                    clique para executá-lo. O Windows pode exibir um aviso de
+                    segurança; clique em "Mais informações" e depois em
+                    "Executar mesmo assim".
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-3">
                   <AccordionTrigger>
-                    Passo 3: Conclua a Instalação
+                    Passo 3: Siga as Instruções
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    O assistente de instalação será iniciado. Siga as instruções
+                    na tela, aceitando os termos de uso e escolhendo o local de
+                    instalação.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-4">
+                  <AccordionTrigger>
+                    Passo 4: Conclua a Instalação
                   </AccordionTrigger>
                   <AccordionContent>
                     Aguarde o processo de cópia dos arquivos ser concluído. Ao
                     final, clique em "Concluir". Um atalho para o "Contas a
                     Pagar" será criado na sua área de trabalho.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>
-                    Passo 4: Inicie a Aplicação
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    Dê um duplo clique no atalho criado na área de trabalho para
-                    iniciar a aplicação. Na primeira vez, pode levar alguns
-                    segundos a mais para carregar. Faça login com sua conta para
-                    começar a usar.
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>

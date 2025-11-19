@@ -1,6 +1,6 @@
 [package]
 name = "contas-a-pagar"
-version = "1.0.0"
+version = "0.0.50"
 description = "Sistema para registrar, filtrar, pagar e analisar despesas anuais, com rastreabilidade detalhada."
 authors = ["you"]
 license = ""
