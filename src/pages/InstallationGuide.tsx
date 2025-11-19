@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -27,19 +26,11 @@ import {
   AlertTriangle,
   ExternalLink,
 } from 'lucide-react'
-import { toast } from 'sonner'
 
 const InstallationGuidePage = () => {
-  const releasesUrl =
+  const latestReleaseUrl =
     'https://github.com/skip-me/contas-a-pagar/releases/latest'
-
-  const handleDownload = () => {
-    window.open(releasesUrl, '_blank')
-    toast.success('Redirecionando para o GitHub...', {
-      description:
-        'Você pode baixar a versão mais recente na página de lançamentos.',
-    })
-  }
+  const allReleasesUrl = 'https://github.com/skip-me/contas-a-pagar/releases'
 
   return (
     <div className="page-content space-y-6">
@@ -68,13 +59,15 @@ const InstallationGuidePage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  size="lg"
-                  onClick={handleDownload}
-                  className="w-full sm:w-auto"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Acessar Página de Downloads
+                <Button size="lg" asChild className="w-full sm:w-auto">
+                  <a
+                    href={latestReleaseUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Acessar Página de Downloads
+                  </a>
                 </Button>
 
                 <Button
@@ -84,7 +77,7 @@ const InstallationGuidePage = () => {
                   className="w-full sm:w-auto"
                 >
                   <a
-                    href={releasesUrl}
+                    href={allReleasesUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
