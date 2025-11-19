@@ -27,6 +27,13 @@ const InstallationGuidePage = () => {
   useEffect(() => {
     const redirect = async () => {
       try {
+        // Check connection to GitHub before attempting redirect
+        try {
+          await fetch(releasesUrl, { mode: 'no-cors' })
+        } catch (networkError) {
+          throw new Error('A conexão com o GitHub foi recusada.')
+        }
+
         toast.info('Redirecionando...', {
           description:
             'Você está sendo redirecionado para a página de downloads oficial.',
@@ -56,11 +63,14 @@ const InstallationGuidePage = () => {
         }
       } catch (err) {
         console.error('Redirection failed:', err)
-        setError('Não foi possível redirecionar automaticamente.')
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : 'Não foi possível redirecionar automaticamente.'
+        setError(errorMessage)
         setIsRedirecting(false)
         toast.error('Erro no redirecionamento', {
-          description:
-            'Por favor, clique no botão para acessar a página manualmente.',
+          description: errorMessage,
         })
       }
     }
@@ -95,8 +105,9 @@ const InstallationGuidePage = () => {
                 </Alert>
               )}
               <p className="text-sm text-muted-foreground">
-                Se você não foi redirecionado automaticamente, clique no botão
-                abaixo.
+                {error
+                  ? 'Verifique sua conexão e tente novamente.'
+                  : 'Se você não foi redirecionado automaticamente, clique no botão abaixo.'}
               </p>
               <Button asChild className="w-full" size="lg">
                 <a href={releasesUrl} target="_blank" rel="noopener noreferrer">
