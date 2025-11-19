@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Card,
   CardContent,
@@ -5,213 +6,106 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Download,
-  CheckCircle,
-  AlertTriangle,
-  ExternalLink,
-} from 'lucide-react'
+import { Loader2, ExternalLink, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+
+// Extend Window interface for Tauri check
+declare global {
+  interface Window {
+    __TAURI__?: object
+  }
+}
 
 const InstallationGuidePage = () => {
-  const latestReleaseUrl =
-    'https://github.com/skip-me/contas-a-pagar/releases/latest'
-  const allReleasesUrl = 'https://github.com/skip-me/contas-a-pagar/releases'
+  const [isRedirecting, setIsRedirecting] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  // Using the releases page to avoid 404 on /latest if no release is marked as latest
+  const releasesUrl = 'https://github.com/skip-me/contas-a-pagar/releases'
+
+  useEffect(() => {
+    const redirect = async () => {
+      try {
+        toast.info('Redirecionando...', {
+          description:
+            'Você está sendo redirecionado para a página de downloads oficial.',
+        })
+
+        // Delay to allow user to see the message
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+
+        // Check if running in Tauri
+        if (window.__TAURI__) {
+          try {
+            // Dynamically import Tauri shell to avoid build errors in web environment
+            const { open } = await import(
+              /* @vite-ignore */ '@tauri-apps/api/shell'
+            )
+            await open(releasesUrl)
+            setIsRedirecting(false)
+            toast.success('Página de downloads aberta no navegador.')
+          } catch (tauriError) {
+            console.error('Tauri shell open failed:', tauriError)
+            // Fallback to window.location if Tauri shell fails (though unlikely in Tauri)
+            window.location.href = releasesUrl
+          }
+        } else {
+          // Web environment
+          window.location.href = releasesUrl
+        }
+      } catch (err) {
+        console.error('Redirection failed:', err)
+        setError('Não foi possível redirecionar automaticamente.')
+        setIsRedirecting(false)
+        toast.error('Erro no redirecionamento', {
+          description:
+            'Por favor, clique no botão para acessar a página manualmente.',
+        })
+      }
+    }
+
+    redirect()
+  }, [])
 
   return (
-    <div className="page-content space-y-6">
-      <Card>
+    <div className="page-content flex items-center justify-center min-h-[60vh]">
+      <Card className="w-full max-w-md text-center animate-fade-in">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Guia de Instalação para PC
-          </CardTitle>
+          <CardTitle>Downloads</CardTitle>
           <CardDescription>
-            Siga os passos abaixo para instalar o Contas a Pagar no seu
-            computador.
+            Acesse a página oficial para baixar a versão mais recente.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            <div className="p-6 bg-secondary/10 border border-secondary/20 rounded-lg space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  Download do Instalador
-                </h3>
-                <p className="text-muted-foreground">
-                  Clique no botão abaixo para acessar a página de downloads
-                  oficial no GitHub e baixar a versão mais recente do instalador
-                  para Windows (arquivo .msi).
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button size="lg" asChild className="w-full sm:w-auto">
-                  <a
-                    href={latestReleaseUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Acessar Página de Downloads
-                  </a>
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  asChild
-                  className="w-full sm:w-auto"
-                >
-                  <a
-                    href={allReleasesUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Ver Todas as Versões
-                  </a>
-                </Button>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Versão Atual: 0.0.50 • Servidor Seguro
+        <CardContent className="space-y-6">
+          {isRedirecting ? (
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="text-muted-foreground">
+                Aguarde, redirecionando...
               </p>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">
-                Requisitos do Sistema
-              </h3>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Componente</TableHead>
-                      <TableHead>Mínimo</TableHead>
-                      <TableHead>Recomendado</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Sistema Operacional
-                      </TableCell>
-                      <TableCell>Windows 10 (64-bit)</TableCell>
-                      <TableCell>Windows 11 (64-bit)</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Processador</TableCell>
-                      <TableCell>Intel Core i3 ou equivalente</TableCell>
-                      <TableCell>Intel Core i5 ou equivalente</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">Memória RAM</TableCell>
-                      <TableCell>4 GB</TableCell>
-                      <TableCell>8 GB</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell className="font-medium">
-                        Espaço em Disco
-                      </TableCell>
-                      <TableCell>500 MB livres</TableCell>
-                      <TableCell>1 GB livre em SSD</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
+          ) : (
+            <div className="space-y-4 animate-fade-in">
+              {error && (
+                <Alert variant="destructive" className="text-left">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Atenção</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Se você não foi redirecionado automaticamente, clique no botão
+                abaixo.
+              </p>
+              <Button asChild className="w-full" size="lg">
+                <a href={releasesUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Ir para Downloads
+                </a>
+              </Button>
             </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">
-                Passos para Instalação
-              </h3>
-              <Accordion type="single" collapsible className="w-full">
-                <AccordionItem value="item-1">
-                  <AccordionTrigger>
-                    Passo 1: Baixe o Instalador
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    Na página do GitHub, localize a seção "Assets" da versão
-                    mais recente e clique no arquivo com extensão{' '}
-                    <code>.msi</code> (ex:{' '}
-                    <code>contas-a-pagar_0.0.50_x64-setup.msi</code>) para
-                    iniciar o download.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-2">
-                  <AccordionTrigger>
-                    Passo 2: Execute o Arquivo
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    Após o download, localize o arquivo baixado e dê um duplo
-                    clique para executá-lo. O Windows pode exibir um aviso de
-                    segurança; clique em "Mais informações" e depois em
-                    "Executar mesmo assim".
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-3">
-                  <AccordionTrigger>
-                    Passo 3: Siga as Instruções
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    O assistente de instalação será iniciado. Siga as instruções
-                    na tela, aceitando os termos de uso e escolhendo o local de
-                    instalação.
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="item-4">
-                  <AccordionTrigger>
-                    Passo 4: Conclua a Instalação
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    Aguarde o processo de cópia dos arquivos ser concluído. Ao
-                    final, clique em "Concluir". Um atalho para o "Contas a
-                    Pagar" será criado na sua área de trabalho.
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-success mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold">Instalação Concluída!</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Se você seguiu todos os passos, o programa está pronto para
-                    uso. Aproveite a organização financeira que o Contas a Pagar
-                    oferece!
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-warning mr-3 mt-1 flex-shrink-0" />
-                <div>
-                  <h4 className="font-semibold">Problemas na Instalação?</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Se encontrar algum problema, tente desativar temporariamente
-                    seu antivírus e executar o instalador como administrador
-                    (clique com o botão direito e "Executar como
-                    administrador").
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
