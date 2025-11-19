@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -20,9 +21,66 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Download, CheckCircle, AlertTriangle } from 'lucide-react'
+import {
+  Download,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+  RefreshCw,
+  WifiOff,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const InstallationGuidePage = () => {
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
+
+  const installerUrl =
+    'https://github.com/skip-me/contas-a-pagar/releases/latest/download/contas-a-pagar_1.0.0_x64-setup.msi'
+  const releasesUrl =
+    'https://github.com/skip-me/contas-a-pagar/releases/latest'
+
+  const handleDownload = async () => {
+    setDownloadError(null)
+    setIsDownloading(true)
+
+    // Check for network connectivity first
+    if (!navigator.onLine) {
+      setDownloadError(
+        'Sem conexão com a internet. Verifique sua rede e tente novamente.',
+      )
+      setIsDownloading(false)
+      return
+    }
+
+    try {
+      // We use a direct link trigger to let the browser handle the download stream.
+      // This avoids CORS issues and memory limits associated with fetch/blob for large files.
+      const link = document.createElement('a')
+      link.href = installerUrl
+      link.setAttribute('download', 'contas-a-pagar_setup.msi')
+      link.setAttribute('target', '_blank')
+      link.setAttribute('rel', 'noopener noreferrer')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
+      toast.success('Download iniciado!', {
+        description: 'O instalador está sendo baixado pelo seu navegador.',
+        duration: 5000,
+      })
+    } catch (error) {
+      console.error('Erro ao iniciar download:', error)
+      setDownloadError(
+        'Não foi possível iniciar o download automaticamente. Por favor, tente o link alternativo abaixo.',
+      )
+    } finally {
+      // Reset loading state after a short delay to prevent double clicks
+      setTimeout(() => setIsDownloading(false), 2000)
+    }
+  }
+
   return (
     <div className="page-content space-y-6">
       <Card>
@@ -37,20 +95,73 @@ const InstallationGuidePage = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div className="p-4 bg-secondary/10 border border-secondary/20 rounded-lg">
-              <h3 className="font-semibold text-lg mb-2">
-                Download do Instalador
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                Clique no botão abaixo para baixar a versão mais recente e
-                oficial do instalador para Windows.
+            <div className="p-6 bg-secondary/10 border border-secondary/20 rounded-lg space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">
+                  Download do Instalador
+                </h3>
+                <p className="text-muted-foreground">
+                  Clique no botão abaixo para baixar a versão mais recente e
+                  oficial do instalador para Windows.
+                </p>
+              </div>
+
+              {downloadError && (
+                <Alert variant="destructive" className="animate-fade-in">
+                  <WifiOff className="h-4 w-4" />
+                  <AlertTitle>Erro no Download</AlertTitle>
+                  <AlertDescription className="flex flex-col gap-2">
+                    <p>{downloadError}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-fit mt-2 border-destructive/50 hover:bg-destructive/10"
+                      onClick={() => window.open(releasesUrl, '_blank')}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Acessar Página de Downloads
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  size="lg"
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="w-full sm:w-auto"
+                >
+                  {isDownloading ? (
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  {isDownloading
+                    ? 'Iniciando...'
+                    : 'Baixar Instalador para Windows'}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  asChild
+                  className="w-full sm:w-auto"
+                >
+                  <a
+                    href={releasesUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Outras Versões
+                  </a>
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Versão 1.0.0 (x64) • Tamanho aprox. 5MB • Servidor Seguro
               </p>
-              <Button asChild>
-                <a href="https://github.com/skip-me/contas-a-pagar/releases/latest/download/contas-a-pagar_1.0.0_x64-setup.msi">
-                  <Download className="mr-2 h-4 w-4" />
-                  Baixar Instalador para Windows
-                </a>
-              </Button>
             </div>
 
             <div>
