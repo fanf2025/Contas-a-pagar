@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policies
--- We use a DO block to safely drop policies if they exist, as CREATE POLICY IF NOT EXISTS is not available in all Postgres versions supported
+-- We use a DO block to safely drop policies if they exist
 DO $$
 BEGIN
     DROP POLICY IF EXISTS "Public profiles are viewable by everyone." ON public.profiles;
@@ -47,8 +47,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+-- Trigger logic removed to prevent table locking issues on auth.users.
+-- The trigger 'on_auth_user_created' already exists from the initial migration
+-- and points to 'public.handle_new_user'. Updating the function above is sufficient.
