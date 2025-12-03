@@ -44,27 +44,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check for active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    let mounted = true
+
+    // Check for active session on mount
+    const checkSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (mounted) {
+          setSession(session)
+          setUser(session?.user ?? null)
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Error checking session:', error)
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    checkSession()
 
     // Listen for changes on auth state
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
+      if (mounted) {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
 
-      if (event === 'PASSWORD_RECOVERY') {
-        navigate('/reset-password')
+        if (event === 'PASSWORD_RECOVERY') {
+          navigate('/reset-password')
+        }
+
+        if (event === 'SIGNED_OUT') {
+          setUser(null)
+          setSession(null)
+          navigate('/login')
+        }
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+    }
   }, [navigate])
 
   const signIn = async (email: string, password: string) => {
@@ -99,10 +127,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        throw error
+      }
+    } catch (error) {
+      console.error('Error signing out:', error)
       toast.error('Erro ao sair da conta.')
-    } else {
+      // Force local cleanup even if server request fails
+      setUser(null)
+      setSession(null)
       navigate('/login')
     }
   }
@@ -137,9 +172,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       throw error
     }
 
-    // Also update the profiles table if needed,
-    // but the trigger handles creation.
-    // Updating metadata triggers USER_UPDATED event which updates local user state.
+    // Also update the profiles table if needed
     if (user) {
       const { error: profileError } = await supabase
         .from('profiles')

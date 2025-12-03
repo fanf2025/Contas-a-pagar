@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -45,14 +45,16 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 const RegisterPage = () => {
   const navigate = useNavigate()
-  const { signUp, user } = useAuth()
+  const { signUp, user, loading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // Redirect if already logged in
-  if (user) {
-    navigate('/')
-  }
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/')
+    }
+  }, [user, loading, navigate])
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -82,6 +84,14 @@ const RegisterPage = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (

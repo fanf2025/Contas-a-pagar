@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertCircle, DollarSign, Loader2 } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { toast } from 'sonner'
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Por favor, insira um email válido.' }),
@@ -34,15 +35,19 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const { signIn, socialLogin, user } = useAuth()
+  const location = useLocation()
+  const { signIn, socialLogin, user, loading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSocialLoading, setIsSocialLoading] = useState(false)
 
-  // Redirect if already logged in
-  if (user) {
-    navigate('/')
-  }
+  // Handle redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      const from = location.state?.from?.pathname || '/'
+      navigate(from, { replace: true })
+    }
+  }, [user, loading, navigate, location])
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -54,10 +59,20 @@ const LoginPage = () => {
     setError(null)
     try {
       await signIn(data.email, data.password)
-      navigate('/')
+      toast.success('Login realizado com sucesso!')
+      // Navigation is handled by the useEffect above or the auth state change
     } catch (err) {
-      if (err instanceof Error) setError(err.message)
-      else setError('Email ou senha inválidos.')
+      console.error('Login error:', err)
+      if (err instanceof Error) {
+        // Handle specific Supabase errors if needed
+        if (err.message.includes('Invalid login credentials')) {
+          setError('Email ou senha incorretos.')
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError('Email ou senha inválidos.')
+      }
       form.setValue('password', '')
     } finally {
       setIsLoading(false)
@@ -75,6 +90,14 @@ const LoginPage = () => {
     } finally {
       setIsSocialLoading(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
   }
 
   return (
