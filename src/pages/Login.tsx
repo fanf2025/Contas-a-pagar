@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -34,10 +34,15 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 const LoginPage = () => {
   const navigate = useNavigate()
-  const { login, socialLogin } = useAuthStore()
+  const { signIn, socialLogin, user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isSocialLoading, setIsSocialLoading] = useState(false)
+
+  // Redirect if already logged in
+  if (user) {
+    navigate('/')
+  }
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -48,23 +53,22 @@ const LoginPage = () => {
     setIsLoading(true)
     setError(null)
     try {
-      await login(data.email, data.password)
+      await signIn(data.email, data.password)
       navigate('/')
     } catch (err) {
       if (err instanceof Error) setError(err.message)
-      else setError('Ocorreu um erro inesperado.')
+      else setError('Email ou senha inválidos.')
       form.setValue('password', '')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSocialLogin = async () => {
+  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     setIsSocialLoading(true)
     setError(null)
     try {
-      await socialLogin()
-      navigate('/')
+      await socialLogin(provider)
     } catch (err) {
       if (err instanceof Error) setError(err.message)
       else setError('Ocorreu um erro inesperado.')
@@ -158,7 +162,7 @@ const LoginPage = () => {
             <Button
               variant="outline"
               className="w-full"
-              onClick={handleSocialLogin}
+              onClick={() => handleSocialLogin('google')}
               disabled={isLoading || isSocialLoading}
             >
               {isSocialLoading ? (
@@ -175,7 +179,7 @@ const LoginPage = () => {
             <Button
               variant="outline"
               className="w-full"
-              onClick={handleSocialLogin}
+              onClick={() => handleSocialLogin('facebook')}
               disabled={isLoading || isSocialLoading}
             >
               {isSocialLoading ? (

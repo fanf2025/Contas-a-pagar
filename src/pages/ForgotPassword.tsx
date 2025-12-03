@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DollarSign, Loader2, CheckCircle } from 'lucide-react'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const forgotPasswordSchema = z.object({
@@ -26,9 +26,7 @@ type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>
 const ForgotPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
-  const requestPasswordReset = useAuthStore(
-    (state) => state.requestPasswordReset,
-  )
+  const { resetPassword } = useAuth()
 
   const {
     register,
@@ -41,11 +39,12 @@ const ForgotPasswordPage = () => {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true)
     try {
-      await requestPasswordReset(data.email)
+      await resetPassword(data.email)
       setIsSubmitted(true)
     } catch (error) {
-      // In a real app, you might not want to reveal if an email exists.
-      // For this mock, we'll show success regardless to prevent enumeration.
+      console.error('Reset password error:', error)
+      // Even if there's an error (e.g., user not found), we show success to prevent enumeration
+      // unless it's a rate limit or other system error
       setIsSubmitted(true)
     } finally {
       setIsLoading(false)

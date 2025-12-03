@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -45,9 +45,14 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 const RegisterPage = () => {
   const navigate = useNavigate()
-  const registerUser = useAuthStore((state) => state.register)
+  const { signUp, user } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Redirect if already logged in
+  if (user) {
+    navigate('/')
+  }
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -63,9 +68,9 @@ const RegisterPage = () => {
     setIsLoading(true)
     setError(null)
     try {
-      await registerUser(data.name, data.email, data.password)
+      await signUp(data.name, data.email, data.password)
       toast.success('Conta criada com sucesso!', {
-        description: 'Você será redirecionado para a página de login.',
+        description: 'Verifique seu email para confirmar o cadastro.',
       })
       navigate('/login')
     } catch (err) {

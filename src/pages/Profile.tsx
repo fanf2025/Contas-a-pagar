@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { useAvatarStore } from '@/stores/useAvatarStore'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,7 +35,7 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 const ProfilePage = () => {
-  const { user, updateUser } = useAuthStore()
+  const { user, updateProfile } = useAuth()
   const { getAvatar, setAvatar } = useAvatarStore()
   const [isLoading, setIsLoading] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
@@ -44,19 +44,25 @@ const ProfilePage = () => {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user?.name || '',
+      name: user?.user_metadata?.full_name || user?.email || '',
       email: user?.email || '',
     },
   })
 
   useEffect(() => {
-    if (user?.email) {
-      const storedAvatar = getAvatar(user.email)
-      if (storedAvatar) {
-        setAvatarPreview(storedAvatar)
+    if (user) {
+      form.reset({
+        name: user.user_metadata?.full_name || user.email || '',
+        email: user.email || '',
+      })
+      if (user.email) {
+        const storedAvatar = getAvatar(user.email)
+        if (storedAvatar) {
+          setAvatarPreview(storedAvatar)
+        }
       }
     }
-  }, [user, getAvatar])
+  }, [user, getAvatar, form])
 
   const handleAvatarChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -73,10 +79,10 @@ const ProfilePage = () => {
     if (!user?.email) return
     setIsLoading(true)
     try {
-      await updateUser(data.name, data.email)
+      await updateProfile(data.name)
 
       if (avatarPreview) {
-        setAvatar(data.email, avatarPreview)
+        setAvatar(user.email, avatarPreview)
       }
 
       toast.success('Perfil atualizado com sucesso!')
@@ -110,10 +116,10 @@ const ProfilePage = () => {
                     alt="Avatar do usuário"
                   />
                   <AvatarFallback>
-                    {user?.name ? (
-                      user.name
+                    {user?.user_metadata?.full_name ? (
+                      user.user_metadata.full_name
                         .split(' ')
-                        .map((n) => n[0])
+                        .map((n: string) => n[0])
                         .join('')
                     ) : (
                       <UserIcon className="h-12 w-12" />
@@ -167,7 +173,7 @@ const ProfilePage = () => {
                       <Input
                         placeholder="seu@email.com"
                         {...field}
-                        disabled={isLoading}
+                        disabled={true} // Email updates in supabase require more logic
                       />
                     </FormControl>
                     <FormMessage />

@@ -22,6 +22,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { DollarSign, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useAuth } from '@/hooks/use-auth'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const resetPasswordSchema = z
   .object({
@@ -40,6 +42,8 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>
 const ResetPasswordPage = () => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { updatePassword } = useAuth()
 
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -51,14 +55,22 @@ const ResetPasswordPage = () => {
 
   const onSubmit = async (data: ResetPasswordFormValues) => {
     setIsLoading(true)
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    console.log('Password reset for:', data.password) // In a real app, you'd use a token
-    toast.success('Senha redefinida com sucesso!', {
-      description: 'Você já pode fazer login com sua nova senha.',
-    })
-    setIsLoading(false)
-    navigate('/login')
+    setError(null)
+    try {
+      await updatePassword(data.password)
+      toast.success('Senha redefinida com sucesso!', {
+        description: 'Você já pode fazer login com sua nova senha.',
+      })
+      navigate('/')
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('Erro ao redefinir a senha. Tente solicitar um novo link.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -74,6 +86,12 @@ const ResetPasswordPage = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTitle>Erro</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <FormField
                 control={form.control}
                 name="password"

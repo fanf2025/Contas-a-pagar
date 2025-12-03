@@ -21,43 +21,46 @@ import CashEntryDetailPage from './pages/CashEntryDetail'
 import PublishPage from './pages/Publish'
 import { AnalyticsTracker } from './components/AnalyticsTracker'
 import InstallationGuidePage from './pages/InstallationGuide'
+import { AuthProvider } from './hooks/use-auth'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
 
 const App = () => (
   <BrowserRouter>
-    <AnalyticsTracker />
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+    <AuthProvider>
+      <AnalyticsTracker />
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/lancamentos" element={<Lancamentos />} />
-            <Route
-              path="/lancamentos/caixa/:id"
-              element={<CashEntryDetailPage />}
-            />
-            <Route path="/baixas" element={<Baixas />} />
-            <Route path="/metas" element={<MetasPage />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/publicar" element={<PublishPage />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
-            <Route path="/perfil" element={<ProfilePage />} />
-            <Route path="/instalacao" element={<InstallationGuidePage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/lancamentos" element={<Lancamentos />} />
+              <Route
+                path="/lancamentos/caixa/:id"
+                element={<CashEntryDetailPage />}
+              />
+              <Route path="/baixas" element={<Baixas />} />
+              <Route path="/metas" element={<MetasPage />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+              <Route path="/publicar" element={<PublishPage />} />
+              <Route path="/configuracoes" element={<Configuracoes />} />
+              <Route path="/perfil" element={<ProfilePage />} />
+              <Route path="/instalacao" element={<InstallationGuidePage />} />
+            </Route>
           </Route>
-        </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 

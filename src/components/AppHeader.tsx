@@ -26,7 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAuthStore } from '@/stores/useAuthStore'
+import { useAuth } from '@/hooks/use-auth'
 import { useAvatarStore } from '@/stores/useAvatarStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { OfflineIndicator } from './OfflineIndicator'
@@ -48,15 +48,16 @@ type AppHeaderProps = {
 
 export const AppHeader = ({ title }: AppHeaderProps) => {
   const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const { user, signOut } = useAuth()
   const { getAvatar } = useAvatarStore()
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
+    signOut()
+    // Navigate is handled in useAuth but safety first
   }
 
   const userAvatar = user?.email ? getAvatar(user.email) : undefined
+  const userName = user?.user_metadata?.full_name || user?.email || 'Usuário'
 
   return (
     <header className="page-header sticky top-0 z-30">
@@ -110,12 +111,12 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={userAvatar} alt="Avatar do usuário" />
                   <AvatarFallback>
-                    {user?.name
-                      ? user.name
-                          .split(' ')
-                          .map((n) => n[0])
-                          .join('')
-                      : 'U'}
+                    {userName
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -123,9 +124,7 @@ export const AppHeader = ({ title }: AppHeaderProps) => {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name}
-                  </p>
+                  <p className="text-sm font-medium leading-none">{userName}</p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user?.email}
                   </p>
